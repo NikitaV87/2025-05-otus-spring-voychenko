@@ -1,6 +1,5 @@
 package ru.otus.hw.dao;
 
-import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvToBeanBuilder;
 import lombok.RequiredArgsConstructor;
 import ru.otus.hw.config.AppProperties;
@@ -21,9 +20,6 @@ public class CsvQuestionDao implements QuestionDao {
     private final TestFileNameProvider fileNameProvider;
 
     private final CSVQuestionSettings csvQuestionSettings;
-
-    @CsvBindByName(required = true)
-    private String questionText;
 
     public CsvQuestionDao(AppProperties appProperties) {
         this.fileNameProvider = appProperties;
