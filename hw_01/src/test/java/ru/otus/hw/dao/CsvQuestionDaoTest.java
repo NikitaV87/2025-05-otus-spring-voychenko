@@ -8,26 +8,28 @@ import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.QuestionReadException;
 
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @DisplayName("Тест парсинга csv файлов")
 public class CsvQuestionDaoTest {
-    final public HashMap<String, List<Answer>> allQuestionAnswers;
+    final public Map<String, List<Answer>> allQuestionAnswers;
 
     {
-        allQuestionAnswers = new HashMap<>() {{
+        allQuestionAnswers = new LinkedHashMap<>() {{
             put("Is there life on Mars?", List.of(new Answer("Science doesn't know this yet", true),
                     new Answer("Certainly. The red UFO is from Mars. And green is from Venus", false),
                     new Answer("Absolutely not", false)));
             put("How should resources be loaded form jar in Java?",
-                    List.of(new Answer("ClassLoader#geResourceAsStream or ClassPathResource#getInputStream", true),
-                            new Answer("ClassLoader#geResource#getFile + FileReader", false),
-                            new Answer("Wingardium Leviosa", false)));
+                List.of(new Answer("ClassLoader#geResourceAsStream or ClassPathResource#getInputStream",
+                                true),
+                        new Answer("ClassLoader#geResource#getFile + FileReader", false),
+                        new Answer("Wingardium Leviosa", false)));
             put("Which option is a good way to handle the exception?",
-                    List.of(new Answer("@SneakyThrow", false), new Answer("e.printStackTrace()", false), new Answer(
-                                    "Rethrow with wrapping in business exception (for example, QuestionReadException)", true),
+                    List.of(new Answer("@SneakyThrow", false), new Answer("e.printStackTrace()", false),
+                            new Answer("Rethrow with wrapping in business exception (for example, QuestionRead" +
+                                    "Exception)", true),
                             new Answer("Ignoring exception", false)));
         }};
     }
@@ -35,7 +37,7 @@ public class CsvQuestionDaoTest {
     @Test
     @DisplayName("Тест чтения файла csv")
     void testReadFileCSV() {
-        AppProperties appProperties = new AppProperties("src/test/java/resources/questions.csv", ';', 1);
+        AppProperties appProperties = new AppProperties("questions.csv", ';', 1);
         CsvQuestionDao сsvQuestionDao = new CsvQuestionDao(appProperties);
 
         Assertions.assertDoesNotThrow(() -> {
@@ -46,21 +48,22 @@ public class CsvQuestionDaoTest {
     @Test
     @DisplayName("Проверка вопросов из файла")
     void testReadQuestionInFile() {
-        AppProperties appProperties = new AppProperties("src/test/java/resources/questions.csv", ';', 1);
+        AppProperties appProperties = new AppProperties("questions.csv", ';', 1);
         CsvQuestionDao сsvQuestionDao = new CsvQuestionDao(appProperties);
 
         List<Question> questions = сsvQuestionDao.findAll();
 
         Assertions.assertEquals(allQuestionAnswers.keySet().size(), questions.size(), "Неверное количество вопросов");
 
-        Assertions.assertArrayEquals(questions.stream().map(Question::text).sorted().toArray(String[]::new),
-                allQuestionAnswers.keySet().stream().sorted().toArray(String[]::new), "Неожидаемый вопрос");
+        Assertions.assertArrayEquals(allQuestionAnswers.keySet().toArray(String[]::new),
+                questions.stream().map(Question::text).toArray(String[]::new),
+                "Неожидаемый вопрос");
     }
 
     @Test
     @DisplayName("Проверка чтения ответов из файла")
     void testReadAnswersInFile() {
-        AppProperties appProperties = new AppProperties("src/test/java/resources/questions.csv", ';', 1);
+        AppProperties appProperties = new AppProperties("questions.csv", ';', 1);
         CsvQuestionDao сsvQuestionDao = new CsvQuestionDao(appProperties);
 
         List<Question> questions = сsvQuestionDao.findAll();
@@ -71,10 +74,8 @@ public class CsvQuestionDaoTest {
             Assertions.assertTrue(allQuestionAnswers.containsKey(textQuestion),
                     "Некорректный вопрос: %s".formatted(textQuestion));
 
-            Answer[] correctAnswers = allQuestionAnswers.get(textQuestion).stream()
-                    .sorted(Comparator.comparing(Answer::text)).toArray(Answer[]::new);
-            Answer[] fileAnswers = question.answers().stream().sorted(Comparator.comparing(Answer::text))
-                    .toArray(Answer[]::new);
+            Answer[] correctAnswers = allQuestionAnswers.get(textQuestion).toArray(Answer[]::new);
+            Answer[] fileAnswers = question.answers().toArray(Answer[]::new);
 
             Assertions.assertEquals(correctAnswers.length, fileAnswers.length,
                     "Вопрос: %s\nНеверное количество ответов".formatted(textQuestion));
@@ -87,12 +88,11 @@ public class CsvQuestionDaoTest {
     @Test
     @DisplayName("Ошибка чтения отсутствующего файла")
     void testReadNotExistsFile() {
-        AppProperties appProperties = new AppProperties("src/test/java/resources/NO_HAVE.csv", ';', 1);
+        AppProperties appProperties = new AppProperties("NO_HAVE.csv", ';', 1);
         CsvQuestionDao сsvQuestionDao = new CsvQuestionDao(appProperties);
 
-        Assertions.assertThrows(QuestionReadException.class, () -> {
-            сsvQuestionDao.findAll();
-        }, "Нет ошибки при отсутствии файла");
+        Assertions.assertThrows(QuestionReadException.class, сsvQuestionDao::findAll,
+                "Нет ошибки при отсутствии файла");
 
     }
 }

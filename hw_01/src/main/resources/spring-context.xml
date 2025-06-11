@@ -13,7 +13,7 @@
     </bean>
 
     <bean id="appProperties" class="ru.otus.hw.config.AppProperties">
-        <constructor-arg name="testFileName" value="src/main/resources/questions.csv"/>
+        <constructor-arg name="testFileName" value="questions.csv"/>
         <constructor-arg name="separatorCSVQuestion" value=";"/>
         <constructor-arg name="skipLines" value="1"/>
     </bean>

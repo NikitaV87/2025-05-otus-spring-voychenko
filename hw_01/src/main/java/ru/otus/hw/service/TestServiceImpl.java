@@ -20,10 +20,14 @@ public class TestServiceImpl implements TestService {
         ioService.printLine("");
         ioService.printFormattedLine("Please answer the questions below%n");
 
-        questions.forEach(question -> {
-            System.out.println("Question " + question.text() + "\nAnswers: ");
-            question.answers().forEach((t) -> ioService.printLine(t.text()));
-            System.out.println();
+        questions.parallelStream().forEachOrdered(question -> {
+            ioService.printLine("Question " + question.text() + "\nAnswers: ");
+
+            final int[] index = new int[]{0};
+
+            question.answers().forEach((t) -> ioService.printLine((++index[0]) + ": " + t.text()));
+
+            ioService.printLine("");
         });
     }
 }
