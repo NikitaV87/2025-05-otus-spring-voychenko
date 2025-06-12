@@ -11,8 +11,8 @@ import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.QuestionReadException;
 
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +32,7 @@ public class CsvQuestionDao implements QuestionDao {
     public List<Question> findAll() {
         ClassPathResource resource = new ClassPathResource(fileNameProvider.getTestFileName());
 
-        try (Reader reader = new FileReader(resource.getFile())) {
+        try (Reader reader = new InputStreamReader(resource.getInputStream())) {
             return new CsvToBeanBuilder<QuestionDto>(reader).withType(QuestionDto.class)
                     .withSeparator(csvQuestionSettings.getSeparatorCSVQuestion())
                     .withSkipLines(csvQuestionSettings.getSkipLines()).build().parse().stream()
