@@ -30,7 +30,15 @@
             https://raw.githubusercontent.com/OtusTeam/Spring/master/checkstyle.xml
         </checkstyle.config.url>
     </properties>
+
     <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+            <version>${lombok.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
