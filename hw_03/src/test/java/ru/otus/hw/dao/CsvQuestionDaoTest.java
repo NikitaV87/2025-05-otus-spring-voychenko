@@ -3,7 +3,6 @@ package ru.otus.hw.dao;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import ru.otus.hw.config.AppProperties;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
@@ -12,7 +11,6 @@ import ru.otus.hw.exceptions.QuestionReadException;
 import java.util.*;
 
 @DisplayName("Тест парсинга csv файлов")
-@SpringBootTest
 public class CsvQuestionDaoTest {
     final public Map<String, List<Answer>> allQuestionAnswers;
 

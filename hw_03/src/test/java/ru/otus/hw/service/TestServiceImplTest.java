@@ -35,7 +35,7 @@ public class TestServiceImplTest {
     @DisplayName("Тест ввода ответа на вопросы")
     @Test
     void executeTestFor() {
-        when(ioService.readIntForRangeLocalized(anyInt(), anyInt(), anyString())).thenReturn(1, 1);
+        when(ioService.readIntForRangeLocalized(anyInt(), anyInt(), anyString())).thenReturn(2, 2);
 
         when(questionDao.findAll()).thenReturn(
                 List.of(new Question("question1",

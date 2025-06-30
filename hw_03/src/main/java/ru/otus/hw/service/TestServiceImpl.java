@@ -37,9 +37,9 @@ public class TestServiceImpl implements TestService {
 
     private Answer getSelectedAnswer(Question question) {
         int countAnswer = question.answers().size() - 1;
-        int indexAnswer = ioService.readIntForRangeLocalized(0, countAnswer, "TestService.question.repeat");
+        int indexAnswer = ioService.readIntForRangeLocalized(1, countAnswer, "TestService.question.repeat");
 
-        return question.answers().get(indexAnswer);
+        return question.answers().get(indexAnswer - 1);
     }
 
     private void outQuestionAndAnswers(Question question) {
@@ -50,8 +50,8 @@ public class TestServiceImpl implements TestService {
     private String getNumberedStringAnswers(Question question) {
         StringBuilder resultText = new StringBuilder();
 
-        for (int answerIndex = 0; answerIndex < question.answers().size(); answerIndex++) {
-            resultText.append(String.format("%d: %s\n", answerIndex, question.answers().get(answerIndex).text()));
+        for (int answerIndex = 1; answerIndex < question.answers().size() + 1; answerIndex++) {
+            resultText.append(String.format("%d: %s\n", answerIndex, question.answers().get(answerIndex - 1).text()));
         }
 
         return resultText.toString();
