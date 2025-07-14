@@ -22,6 +22,7 @@
         <module>hw_02</module>
         <module>hw_03</module>
         <module>hw_04</module>
+        <module>hw_05</module>
     </modules>
 
     <properties>
