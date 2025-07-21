@@ -4,7 +4,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.models.Genre;
 
 import java.util.List;
@@ -19,7 +18,6 @@ public class JpaGenreRepository implements GenreRepository {
         this.em = em;
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<Genre> findAll() {
         TypedQuery<Genre> query = em.createQuery("select g from Genre g", Genre.class);
@@ -27,7 +25,6 @@ public class JpaGenreRepository implements GenreRepository {
         return query.getResultList();
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<Genre> findAllByIds(Set<Long> ids) {
         TypedQuery<Genre> query = em.createQuery("select g from Genre g where g.id in (:ids)", Genre.class);

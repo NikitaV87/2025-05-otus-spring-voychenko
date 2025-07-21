@@ -4,7 +4,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.models.BookComment;
 
 import java.util.List;
@@ -25,7 +24,6 @@ public class JpaBookCommentRepository implements BookCommentRepository {
         return Optional.ofNullable(em.find(BookComment.class, id));
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<BookComment> findByBookId(Long id) {
         TypedQuery<BookComment> query = em.createQuery("select bc from BookComment bc where bc.book.id = :id",
@@ -35,7 +33,6 @@ public class JpaBookCommentRepository implements BookCommentRepository {
         return query.getResultList();
     }
 
-    @Transactional
     @Override
     public BookComment save(BookComment bookComment) {
         if (bookComment.getId() == null) {
@@ -46,7 +43,6 @@ public class JpaBookCommentRepository implements BookCommentRepository {
         return em.merge(bookComment);
     }
 
-    @Transactional
     @Override
     public void delete(BookComment bookComment) {
         BookComment bookCommentForDelete = em.find(BookComment.class, bookComment.getId());

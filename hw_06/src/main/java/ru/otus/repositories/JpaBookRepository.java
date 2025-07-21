@@ -6,7 +6,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.models.Book;
 
 import java.util.HashMap;
@@ -26,7 +25,6 @@ public class JpaBookRepository implements BookRepository {
         this.em = em;
     }
 
-    @Transactional(readOnly = true)
     @Override
     public Optional<Book> findById(long id) {
         EntityGraph<?> entityGraph = em.getEntityGraph("book-author-genre-graph");
@@ -47,7 +45,6 @@ public class JpaBookRepository implements BookRepository {
         return book;
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<Book> findAll() {
         EntityGraph<?> entityGraph = em.getEntityGraph("book-author-genre-graph");
@@ -72,7 +69,6 @@ public class JpaBookRepository implements BookRepository {
         return book;
     }
 
-    @Transactional
     @Override
     public Book save(Book book) {
         if (book.getId() == null) {
@@ -83,7 +79,6 @@ public class JpaBookRepository implements BookRepository {
         return em.merge(book);
     }
 
-    @Transactional
     @Override
     public void deleteById(long id) {
         Query queryBook = em.createQuery("delete from Book b where b.id = :id");
