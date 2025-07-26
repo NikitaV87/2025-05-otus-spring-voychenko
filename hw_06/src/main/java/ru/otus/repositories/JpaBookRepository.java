@@ -3,8 +3,8 @@ package ru.otus.repositories;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
 import ru.otus.models.Book;
 
@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.springframework.data.jpa.repository.EntityGraph.EntityGraphType.FETCH;
+import static org.springframework.data.jpa.repository.EntityGraph.EntityGraphType.LOAD;
 
 @Repository
 public class JpaBookRepository implements BookRepository {
@@ -27,46 +28,41 @@ public class JpaBookRepository implements BookRepository {
 
     @Override
     public Optional<Book> findById(long id) {
-        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-genre-graph");
+        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-graph");
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put(FETCH.getKey(), entityGraph);
-        Optional<Book> book =  Optional.ofNullable(em.find(Book.class, id, properties));
+        properties.put(LOAD.getKey(), entityGraph);
 
-        if (book.isPresent()) {
-            entityGraph = em.getEntityGraph("book-comment-graph");
-            book = Optional.ofNullable(em.createQuery("select distinct b from Book b " +
-                            "left join fetch b.comments c " +
-                            "where b in :book", Book.class)
-                    .setParameter("book", book.get())
-                    .setHint(FETCH.getKey(), entityGraph)
-                    .getSingleResult());
-        }
+        return Optional.ofNullable(em.find(Book.class, id, properties));
+    }
+
+    public Optional<Book> findByIdWithFetchComments(long id) {
+        Optional<Book> book = findById(id);
+
+        book.ifPresent(b -> Hibernate.initialize(b.getComments()));
+
         return book;
     }
 
     @Override
     public List<Book> findAll() {
-        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-genre-graph");
+        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-graph");
         TypedQuery<Book> query = em.createQuery("select distinct b from Book b " +
-                "left join fetch b.genres " +
-                "left join fetch b.author", Book.class);
+                "left join fetch b.genres", Book.class);
         query.setHint(FETCH.getKey(), entityGraph);
 
-        List<Book> book = query.getResultList();
+        return query.getResultList();
+    }
 
-        if (book.size() > 0) {
-            entityGraph = em.getEntityGraph("book-comment-graph");
-            book = em.createQuery("select distinct b from Book b " +
-                            "left join fetch b.comments c " +
-                            "where b in :book", Book.class)
-                    .setParameter("book", book).
-                    setHint(FETCH.getKey(), entityGraph)
-                    .getResultList();
+    public List<Book> findAllWithFetchComments() {
+        List<Book> books = findAll();
 
-        }
+        TypedQuery<Book> query = em.createQuery("select distinct b from Book b " +
+                "left join fetch b.comments " +
+                "where b in :book", Book.class);
+        query.setParameter("book", books);
 
-        return book;
+        return query.getResultList();
     }
 
     @Override
@@ -81,8 +77,9 @@ public class JpaBookRepository implements BookRepository {
 
     @Override
     public void deleteById(long id) {
-        Query queryBook = em.createQuery("delete from Book b where b.id = :id");
-        queryBook.setParameter("id", id);
-        queryBook.executeUpdate();
+        Optional<Book> bookForDelete = Optional.ofNullable(
+                em.find(Book.class, id));
+
+        bookForDelete.ifPresent(em::remove);
     }
 }

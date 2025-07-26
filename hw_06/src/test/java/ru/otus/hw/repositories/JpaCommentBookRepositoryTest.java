@@ -2,7 +2,6 @@ package ru.otus.hw.repositories;
 
 import lombok.val;
 import org.assertj.core.api.Assertions;
-import org.hibernate.Hibernate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
+import ru.otus.hw.TestUtils;
 import ru.otus.models.Book;
 import ru.otus.models.BookComment;
 import ru.otus.repositories.BookCommentRepository;
@@ -54,12 +54,11 @@ public class JpaCommentBookRepositoryTest {
     @Test
     void findByBookIdTest() {
         val book = em.find(Book.class, ID_BOOK_FOR_FIND_COMMENTS);
-        Hibernate.initialize(book.getComments());
         List<BookComment> expectedBookComments = book.getComments();
 
-        List<BookComment> actualBookComments = bookCommentRepository.findByBookId(book.getId());
+        List<BookComment> actualBookComments = bookCommentRepository.findByBookId(ID_BOOK_FOR_FIND_COMMENTS);
 
-        Assertions.assertThat(actualBookComments).containsExactlyInAnyOrderElementsOf(expectedBookComments);
+        TestUtils.equalBookComments(actualBookComments, expectedBookComments);
     }
 
     @DisplayName("должен сохранять комментарии")
@@ -68,15 +67,17 @@ public class JpaCommentBookRepositoryTest {
         BookComment bookCommentForSave = new BookComment();
         Book book = em.find(Book.class, ID_BOOK_FOR_SAVE_COMMENT);
         em.detach(book);
+
         bookCommentForSave.setBook(book);
         bookCommentForSave.setText(NEW_COMMENT_TEXT);
 
         BookComment expectedBookComment = bookCommentRepository.save(bookCommentForSave);
 
-        BookComment actualBookComment = em.find(BookComment.class, expectedBookComment.getId());
+        Optional<BookComment> actualBookComment = Optional.ofNullable(em.find(BookComment.class, expectedBookComment.getId()));
 
-        Assertions.assertThat(actualBookComment).isEqualTo(expectedBookComment);
-        Assertions.assertThat(actualBookComment.getText()).isEqualTo(NEW_COMMENT_TEXT);
+        Assertions.assertThat(actualBookComment).isPresent();
+        Assertions.assertThat(actualBookComment.get().getText()).isEqualTo(NEW_COMMENT_TEXT);
+        Assertions.assertThat(actualBookComment.get().getBook().getId()).isEqualTo(ID_BOOK_FOR_SAVE_COMMENT);
     }
 
     @DisplayName("должен обновлять комментарии")

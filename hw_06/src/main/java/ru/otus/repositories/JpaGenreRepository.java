@@ -6,7 +6,7 @@ import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 import ru.otus.models.Genre;
 
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 @Repository
@@ -19,17 +19,17 @@ public class JpaGenreRepository implements GenreRepository {
     }
 
     @Override
-    public List<Genre> findAll() {
+    public Set<Genre> findAll() {
         TypedQuery<Genre> query = em.createQuery("select g from Genre g", Genre.class);
 
-        return query.getResultList();
+        return new HashSet<>(query.getResultList());
     }
 
     @Override
-    public List<Genre> findAllByIds(Set<Long> ids) {
+    public Set<Genre> findAllByIds(Set<Long> ids) {
         TypedQuery<Genre> query = em.createQuery("select g from Genre g where g.id in (:ids)", Genre.class);
         query.setParameter("ids", ids);
 
-        return query.getResultList();
+        return new HashSet<>(query.getResultList());
     }
 }

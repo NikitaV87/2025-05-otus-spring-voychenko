@@ -2,10 +2,11 @@ package ru.otus.repositories;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
+import ru.otus.models.Book;
 import ru.otus.models.BookComment;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,11 +27,13 @@ public class JpaBookCommentRepository implements BookCommentRepository {
 
     @Override
     public List<BookComment> findByBookId(Long id) {
-        TypedQuery<BookComment> query = em.createQuery("select bc from BookComment bc where bc.book.id = :id",
-                BookComment.class);
-        query.setParameter("id", id);
+        Optional<Book> book = Optional.ofNullable(em.find(Book.class, id));
 
-        return query.getResultList();
+        if (book.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return book.get().getComments();
     }
 
     @Override
@@ -45,7 +48,9 @@ public class JpaBookCommentRepository implements BookCommentRepository {
 
     @Override
     public void delete(BookComment bookComment) {
-        BookComment bookCommentForDelete = em.find(BookComment.class, bookComment.getId());
-        em.remove(bookCommentForDelete);
+        Optional<BookComment> bookCommentForDelete = Optional.ofNullable(
+                em.find(BookComment.class, bookComment.getId()));
+
+        bookCommentForDelete.ifPresent(em::remove);
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import ru.otus.hw.TestUtils;
 import ru.otus.models.Author;
 import ru.otus.repositories.AuthorRepository;
 import ru.otus.repositories.JpaAuthorRepository;
@@ -49,8 +50,8 @@ public class JpaAuthorRepositoryTest {
 
         val actualAuthor = authorRepository.findById(expectedId);
 
-        Assertions.assertThat(actualAuthor).isPresent().get()
-                .usingRecursiveComparison().isEqualTo(expectedAuthor);
+        Assertions.assertThat(actualAuthor).isPresent();
+        TestUtils.equalAuthor(actualAuthor.get(), expectedAuthor);
     }
 
 
@@ -60,6 +61,6 @@ public class JpaAuthorRepositoryTest {
         var expectedAuthors = idsAuthor.stream().map(id -> em.find(Author.class, id)).toList();
         var actualAuthors = authorRepository.findAll();
 
-        Assertions.assertThat(actualAuthors).containsExactlyElementsOf(expectedAuthors);
+        TestUtils.equalAuthors(actualAuthors, expectedAuthors);
     }
 }

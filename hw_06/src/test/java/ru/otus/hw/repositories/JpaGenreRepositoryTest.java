@@ -1,6 +1,5 @@
 package ru.otus.hw.repositories;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import ru.otus.hw.TestUtils;
 import ru.otus.models.Genre;
 import ru.otus.repositories.GenreRepository;
 import ru.otus.repositories.JpaGenreRepository;
@@ -15,6 +15,7 @@ import ru.otus.repositories.JpaGenreRepository;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 @DisplayName("Репозиторий на основе Jpa для работы с жанром ")
@@ -50,15 +51,16 @@ public class JpaGenreRepositoryTest {
             expectedGenres.add(em.find(Genre.class, id));
         }
 
-        Assertions.assertThat(actualGenres).containsExactlyInAnyOrderElementsOf(expectedGenres);
+        TestUtils.equalGenres(actualGenres, expectedGenres);
     }
 
     @DisplayName("должен загружать список всех жанров")
     @Test
     void shouldReturnCorrectBooksList() {
         var actualGenres = genreRepository.findAll();
-        var expectedGenres = idsGenre.stream().map(id -> em.find(Genre.class, id)).toList();
+        var expectedGenres = idsGenre.stream().map(id -> em.find(Genre.class, id))
+                .collect(Collectors.toSet());
 
-        Assertions.assertThat(actualGenres).containsExactlyElementsOf(expectedGenres);
+        TestUtils.equalGenres(actualGenres, expectedGenres);
     }
 }

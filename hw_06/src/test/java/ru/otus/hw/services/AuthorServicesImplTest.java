@@ -6,44 +6,54 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import ru.otus.models.Author;
 import ru.otus.repositories.JpaAuthorRepository;
 import ru.otus.services.AuthorService;
 import ru.otus.services.AuthorServiceImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.LongStream;
 
 @DataJpaTest
-@DisplayName("Тест сервиса JpaAuthorRepository")
+@DisplayName("Тест сервиса AuthorServicesImpl")
 @Import({JpaAuthorRepository.class, AuthorServiceImpl.class})
+@Transactional(propagation = Propagation.NEVER)
 public class AuthorServicesImplTest {
     @Autowired
     private AuthorService authorService;
 
-    @Autowired
-    private TestEntityManager em;
-
-    private List<Long> idsAuthor;
-
-    private static List<Long> getIDsAuthor() {
-        return LongStream.range(1, 4).boxed().toList();
-    }
+    private List<Author> authors;
 
     @BeforeEach
     void setUp() {
-        idsAuthor = getIDsAuthor();
+        authors = getAuthors();
     }
 
     @DisplayName("Должен находить все книги")
     @Test
     void getAllAuthors() {
-        var expectedAuthors = idsAuthor.stream().map(id -> em.find(Author.class, id)).toList();
         var actualAuthors = authorService.findAll();
 
-        Assertions.assertThat(actualAuthors).containsExactlyElementsOf(expectedAuthors);
+        Assertions.assertThat(actualAuthors).containsExactlyElementsOf(authors);
+        Assertions.assertThat(actualAuthors.stream().map(Author::getFullName).toList())
+                .containsExactlyElementsOf(authors.stream().map(Author::getFullName).toList());
     }
 
+    private static List<Author> getAuthors() {
+        List<Long> authorIds = LongStream.range(1, 4).boxed().toList();
+        List<Author> authors = new ArrayList<>();
+
+        for (Long authorId : authorIds) {
+            Author author = new Author();
+            author.setId(authorId);
+            author.setFullName("Author_" + authorId);
+            authors.add(author);
+        }
+
+        return authors;
+    }
 }

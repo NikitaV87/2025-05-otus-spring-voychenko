@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.exceptions.EntityNotFoundException;
+import ru.otus.models.Author;
 import ru.otus.models.Book;
 import ru.otus.models.BookComment;
+import ru.otus.models.Genre;
 import ru.otus.repositories.AuthorRepository;
 import ru.otus.repositories.BookRepository;
 import ru.otus.repositories.GenreRepository;
@@ -27,59 +29,57 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<Book> findById(long id) {
-        return bookRepository.findById(id);
+        return bookRepository.findByIdWithFetchComments(id);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<Book> findAll() {
-        return bookRepository.findAll();
+        List<Book> books = bookRepository.findAllWithFetchComments();
+
+        return books;
     }
 
     @Transactional
     @Override
     public Book insert(String title, long authorId, Set<Long> genresIds, List<String> bookComments) {
-        return save(null, title, authorId, genresIds, bookComments);
+        var genres = getGenresWithValidate(genresIds);
+        var author = getAuthorWithValidate(authorId);
+
+        Book book = Book.builder().id(null).title(title).author(author).genres(genres).build();
+        setCommentToBook(book, bookComments);
+
+        return bookRepository.save(book);
     }
 
     @Transactional
     @Override
     public Book update(Long id, String title, long authorId, Set<Long> genresIds, List<String> commentsText) {
-        return save(id, title, authorId, genresIds, commentsText);
+
+        var genres = getGenresWithValidate(genresIds);
+        var author = getAuthorWithValidate(authorId);
+
+        Optional<Book> book = bookRepository.findById(id);
+        if (book.isEmpty()) {
+            throw new EntityNotFoundException("Book with id %d not found".formatted(authorId));
+        }
+
+        book.get().setTitle(title);
+        book.get().setAuthor(author);
+        book.get().setGenres(genres);
+        setCommentToBook(book.get(), commentsText);
+        bookRepository.save(book.get());
+
+        return book.get();
     }
 
     @Transactional
     @Override
     public void deleteById(Long id) {
         bookRepository.deleteById(id);
-    }
-
-    private Book save(Long id, String title, long authorId, Set<Long> genresIds, List<String> commentsText) {
-        if (isEmpty(genresIds)) {
-            throw new IllegalArgumentException("Genres ids must not be null");
-        }
-        var author = authorRepository.findById(authorId)
-                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
-        var genres = genreRepository.findAllByIds(genresIds);
-        if (isEmpty(genres) || genresIds.size() != genres.size()) {
-            throw new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds));
-        }
-        Optional<Book> book;
-        if (id == null) {
-            book = Optional.of(Book.builder().id(id).title(title).author(author).genres(genres).build());
-        } else {
-            book = bookRepository.findById(id);
-            if (book.isEmpty()) {
-                throw new EntityNotFoundException("Book id %d not found".formatted(id));
-            }
-            book.get().setTitle(title);
-            book.get().setAuthor(author);
-            book.get().setGenres(genres);
-        }
-        setCommentToBook(book.get(), commentsText);
-        return bookRepository.save(book.get());
     }
 
     void setCommentToBook(Book book, List<String> commentsText) {
@@ -92,5 +92,25 @@ public class BookServiceImpl implements BookService {
         }
 
         book.setComments(comments);
+    }
+
+    private Set<Genre> getGenresWithValidate(Set<Long> genreIds) {
+        if (isEmpty(genreIds)) {
+            throw new IllegalArgumentException("Genres ids must not be null");
+        }
+
+        var genres = genreRepository.findAllByIds(genreIds);
+        if (isEmpty(genres) || genreIds.size() != genres.size()) {
+            throw new EntityNotFoundException("One or all genres with ids %s not found".formatted(genreIds));
+        }
+
+        return genres;
+    }
+
+    private Author getAuthorWithValidate(Long authorId) {
+        var author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
+
+        return author;
     }
 }

@@ -22,10 +22,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Builder;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -35,10 +38,7 @@ import java.util.Objects;
 @Table(name = "BOOK", indexes = @Index(columnList = "AUTHOR_ID", name = "IND_BOOK_AUTHOR_ID"))
 
 @Entity
-@NamedEntityGraph(name = "book-author-genre-graph",
-        attributeNodes = {@NamedAttributeNode("author"), @NamedAttributeNode("genres")})
-@NamedEntityGraph(name = "book-comment-graph",
-        attributeNodes = {@NamedAttributeNode("comments")})
+@NamedEntityGraph(name = "book-author-graph", attributeNodes = {@NamedAttributeNode("author")})
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,6 +50,7 @@ public class Book {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "AUTHOR_ID", nullable = false)
+    @Fetch(FetchMode.SELECT)
     private Author author;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -57,10 +58,13 @@ public class Book {
             joinColumns = @JoinColumn(name = "BOOK_ID"),
             inverseJoinColumns = @JoinColumn(name = "GENRE_ID"),
             indexes = {@Index(name = "IND_BOOK_GENRE_BOOK_ID", columnList = "BOOK_ID")})
-    private List<Genre> genres;
+    @Fetch(FetchMode.JOIN)
+    private Set<Genre> genres;
 
     @OneToMany(mappedBy = "book",
-            cascade = {CascadeType.REMOVE, CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+            cascade = {CascadeType.REMOVE, CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true,
+            fetch = FetchType.LAZY)
+    @Fetch(FetchMode.SUBSELECT)
     private List<BookComment> comments;
 
     @Override
