@@ -6,7 +6,6 @@ import org.springframework.shell.standard.ShellMethod;
 import ru.otus.converters.BookConverter;
 import ru.otus.services.BookService;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,15 +34,15 @@ public class BookCommands {
 
     // bins newBook 1 1,6
     @ShellMethod(value = "Insert book", key = "bins")
-    public String insertBook(String title, long authorId, Set<Long> genresIds, List<String> comments) {
-        var savedBook = bookService.insert(title, authorId, genresIds, comments);
+    public String insertBook(String title, long authorId, Set<Long> genresIds) {
+        var savedBook = bookService.insert(title, authorId, genresIds);
         return bookConverter.bookToString(savedBook);
     }
 
     // bupd 4 editedBook 3 2,5
     @ShellMethod(value = "Update book", key = "bupd")
-    public String updateBook(long id, String title, long authorId, Set<Long> genresIds, List<String> comments) {
-        var savedBook = bookService.update(id, title, authorId, genresIds, comments);
+    public String updateBook(long id, String title, long authorId, Set<Long> genresIds) {
+        var savedBook = bookService.update(id, title, authorId, genresIds);
         return bookConverter.bookToString(savedBook);
     }
 

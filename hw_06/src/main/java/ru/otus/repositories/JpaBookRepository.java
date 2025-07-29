@@ -4,7 +4,6 @@ import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
 import ru.otus.models.Book;
 
@@ -14,7 +13,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.springframework.data.jpa.repository.EntityGraph.EntityGraphType.FETCH;
-import static org.springframework.data.jpa.repository.EntityGraph.EntityGraphType.LOAD;
 
 @Repository
 public class JpaBookRepository implements BookRepository {
@@ -28,39 +26,19 @@ public class JpaBookRepository implements BookRepository {
 
     @Override
     public Optional<Book> findById(long id) {
-        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-graph");
+        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-genre-graph");
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put(LOAD.getKey(), entityGraph);
+        properties.put(FETCH.getKey(), entityGraph);
 
         return Optional.ofNullable(em.find(Book.class, id, properties));
     }
 
-    public Optional<Book> findByIdWithFetchComments(long id) {
-        Optional<Book> book = findById(id);
-
-        book.ifPresent(b -> Hibernate.initialize(b.getComments()));
-
-        return book;
-    }
-
     @Override
     public List<Book> findAll() {
-        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-graph");
-        TypedQuery<Book> query = em.createQuery("select distinct b from Book b " +
-                "left join fetch b.genres", Book.class);
+        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-genre-graph");
+        TypedQuery<Book> query = em.createQuery("select distinct b from Book b", Book.class);
         query.setHint(FETCH.getKey(), entityGraph);
-
-        return query.getResultList();
-    }
-
-    public List<Book> findAllWithFetchComments() {
-        List<Book> books = findAll();
-
-        TypedQuery<Book> query = em.createQuery("select distinct b from Book b " +
-                "left join fetch b.comments " +
-                "where b in :book", Book.class);
-        query.setParameter("book", books);
 
         return query.getResultList();
     }

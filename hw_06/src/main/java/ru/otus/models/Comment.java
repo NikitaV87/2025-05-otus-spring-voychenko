@@ -10,6 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
@@ -27,7 +30,14 @@ import java.util.Objects;
 @Builder
 @Table(name = "BOOK_COMMENT", indexes = @Index(columnList = "BOOK_ID", name = "IND_BOOK_COMMENT_BOOK_ID"))
 @Entity
-public class BookComment {
+@NamedEntityGraph(
+        name = "comment-book-graph",
+        attributeNodes = @NamedAttributeNode(value = "book", subgraph = "book-author-genre-subgraph"),
+        subgraphs = {
+                @NamedSubgraph(name = "book-author-genre-subgraph",
+                        attributeNodes = {@NamedAttributeNode("author"), @NamedAttributeNode("genres")}),
+        })
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "BOOK_COMMENT_ID")
@@ -59,7 +69,7 @@ public class BookComment {
         if (thisEffectiveClass != oEffectiveClass) {
             return false;
         }
-        BookComment that = (BookComment) o;
+        Comment that = (Comment) o;
         return getId() != null && Objects.equals(getId(), that.getId());
     }
 

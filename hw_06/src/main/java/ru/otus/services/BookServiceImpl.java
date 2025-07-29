@@ -6,14 +6,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.otus.exceptions.EntityNotFoundException;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
-import ru.otus.models.BookComment;
 import ru.otus.models.Genre;
 import ru.otus.repositories.AuthorRepository;
 import ru.otus.repositories.BookRepository;
 import ru.otus.repositories.GenreRepository;
 
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -32,32 +29,29 @@ public class BookServiceImpl implements BookService {
     @Transactional(readOnly = true)
     @Override
     public Optional<Book> findById(long id) {
-        return bookRepository.findByIdWithFetchComments(id);
+        return bookRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<Book> findAll() {
-        List<Book> books = bookRepository.findAllWithFetchComments();
-
-        return books;
+        return bookRepository.findAll();
     }
 
     @Transactional
     @Override
-    public Book insert(String title, long authorId, Set<Long> genresIds, List<String> bookComments) {
+    public Book insert(String title, long authorId, Set<Long> genresIds) {
         var genres = getGenresWithValidate(genresIds);
         var author = getAuthorWithValidate(authorId);
 
         Book book = Book.builder().id(null).title(title).author(author).genres(genres).build();
-        setCommentToBook(book, bookComments);
 
         return bookRepository.save(book);
     }
 
     @Transactional
     @Override
-    public Book update(Long id, String title, long authorId, Set<Long> genresIds, List<String> commentsText) {
+    public Book update(Long id, String title, long authorId, Set<Long> genresIds) {
 
         var genres = getGenresWithValidate(genresIds);
         var author = getAuthorWithValidate(authorId);
@@ -70,7 +64,6 @@ public class BookServiceImpl implements BookService {
         book.get().setTitle(title);
         book.get().setAuthor(author);
         book.get().setGenres(genres);
-        setCommentToBook(book.get(), commentsText);
         bookRepository.save(book.get());
 
         return book.get();
@@ -80,18 +73,6 @@ public class BookServiceImpl implements BookService {
     @Override
     public void deleteById(Long id) {
         bookRepository.deleteById(id);
-    }
-
-    void setCommentToBook(Book book, List<String> commentsText) {
-        List<BookComment> comments = new ArrayList<>();
-
-        if (commentsText != null && commentsText.size() > 0) {
-            for (String commentText : commentsText) {
-                comments.add(BookComment.builder().text(commentText).book(book).build());
-            }
-        }
-
-        book.setComments(comments);
     }
 
     private Set<Genre> getGenresWithValidate(Set<Long> genreIds) {
@@ -108,9 +89,7 @@ public class BookServiceImpl implements BookService {
     }
 
     private Author getAuthorWithValidate(Long authorId) {
-        var author = authorRepository.findById(authorId)
+        return authorRepository.findById(authorId)
                 .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
-
-        return author;
     }
 }

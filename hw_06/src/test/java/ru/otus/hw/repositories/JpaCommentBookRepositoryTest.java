@@ -13,20 +13,20 @@ import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.TestUtils;
 import ru.otus.models.Book;
-import ru.otus.models.BookComment;
-import ru.otus.repositories.BookCommentRepository;
-import ru.otus.repositories.JpaBookCommentRepository;
+import ru.otus.models.Comment;
+import ru.otus.repositories.CommentRepository;
+import ru.otus.repositories.JpaCommentRepository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.LongStream;
 
-@DisplayName("Репозиторий на основе Jpa для работы с книгами ")
+@DisplayName("Репозиторий на основе Jpa для работы с комментарием")
 @DataJpaTest
-@Import({JpaBookCommentRepository.class})
+@Import({JpaCommentRepository.class})
 public class JpaCommentBookRepositoryTest {
     @Autowired
-    private BookCommentRepository bookCommentRepository;
+    private CommentRepository commentRepository;
 
     @Autowired
     private TestEntityManager em;
@@ -44,8 +44,8 @@ public class JpaCommentBookRepositoryTest {
     @ParameterizedTest
     @MethodSource("getCommentBookIds")
     void findByIdTest(Long id) {
-        val expectedCommentBook = em.find(BookComment.class, id);
-        val actualCommentBook = bookCommentRepository.findById(id);
+        val expectedCommentBook = em.find(Comment.class, id);
+        val actualCommentBook = commentRepository.findById(id);
 
         Assertions.assertThat(actualCommentBook).isPresent().get().isEqualTo(expectedCommentBook);
     }
@@ -54,26 +54,26 @@ public class JpaCommentBookRepositoryTest {
     @Test
     void findByBookIdTest() {
         val book = em.find(Book.class, ID_BOOK_FOR_FIND_COMMENTS);
-        List<BookComment> expectedBookComments = book.getComments();
+        List<Comment> expectedComments = book.getComments();
 
-        List<BookComment> actualBookComments = bookCommentRepository.findByBookId(ID_BOOK_FOR_FIND_COMMENTS);
+        List<Comment> actualComments = commentRepository.findByBookId(ID_BOOK_FOR_FIND_COMMENTS);
 
-        TestUtils.equalBookComments(actualBookComments, expectedBookComments);
+        TestUtils.equalComments(actualComments, expectedComments);
     }
 
     @DisplayName("должен сохранять комментарии")
     @Test
     void saveToInsertTest() {
-        BookComment bookCommentForSave = new BookComment();
+        Comment commentForSave = new Comment();
         Book book = em.find(Book.class, ID_BOOK_FOR_SAVE_COMMENT);
         em.detach(book);
 
-        bookCommentForSave.setBook(book);
-        bookCommentForSave.setText(NEW_COMMENT_TEXT);
+        commentForSave.setBook(book);
+        commentForSave.setText(NEW_COMMENT_TEXT);
 
-        BookComment expectedBookComment = bookCommentRepository.save(bookCommentForSave);
+        Comment expectedComment = commentRepository.save(commentForSave);
 
-        Optional<BookComment> actualBookComment = Optional.ofNullable(em.find(BookComment.class, expectedBookComment.getId()));
+        Optional<Comment> actualBookComment = Optional.ofNullable(em.find(Comment.class, expectedComment.getId()));
 
         Assertions.assertThat(actualBookComment).isPresent();
         Assertions.assertThat(actualBookComment.get().getText()).isEqualTo(NEW_COMMENT_TEXT);
@@ -84,27 +84,27 @@ public class JpaCommentBookRepositoryTest {
     @Test
     @Transactional
     void saveToUpdateTest() {
-        BookComment expectedBookComment = em.find(BookComment.class, ID_COMMENT_BOOK_FOR_UPDATE);
-        expectedBookComment.setText(NEW_COMMENT_TEXT);
-        em.detach(expectedBookComment);
+        Comment expectedComment = em.find(Comment.class, ID_COMMENT_BOOK_FOR_UPDATE);
+        expectedComment.setText(NEW_COMMENT_TEXT);
+        em.detach(expectedComment);
 
-        bookCommentRepository.save(expectedBookComment);
+        commentRepository.save(expectedComment);
 
-        BookComment actualBookComment = em.find(BookComment.class, ID_COMMENT_BOOK_FOR_UPDATE);
+        Comment actualComment = em.find(Comment.class, ID_COMMENT_BOOK_FOR_UPDATE);
 
-        Assertions.assertThat(actualBookComment).isEqualTo(expectedBookComment);
-        Assertions.assertThat(actualBookComment.getText()).isEqualTo(NEW_COMMENT_TEXT);
+        Assertions.assertThat(actualComment).isEqualTo(expectedComment);
+        Assertions.assertThat(actualComment.getText()).isEqualTo(NEW_COMMENT_TEXT);
     }
 
     @DisplayName("должен удалять комментарии")
     @Test
-    void delete() {
-        val bookCommentForDelete = em.find(BookComment.class, ID_COMMENT_BOOK_FOR_DELETE);
+    void deleteTest() {
+        val bookCommentForDelete = em.find(Comment.class, ID_COMMENT_BOOK_FOR_DELETE);
         em.detach(bookCommentForDelete);
 
-        bookCommentRepository.delete(bookCommentForDelete);
+        commentRepository.delete(bookCommentForDelete);
 
-        Optional<BookComment> deletedBookComment = Optional.ofNullable(em.find(BookComment.class,
+        Optional<Comment> deletedBookComment = Optional.ofNullable(em.find(Comment.class,
                 ID_COMMENT_BOOK_FOR_DELETE));
 
         Assertions.assertThat(deletedBookComment).isEmpty();

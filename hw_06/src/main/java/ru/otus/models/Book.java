@@ -38,14 +38,19 @@ import java.util.Set;
 @Table(name = "BOOK", indexes = @Index(columnList = "AUTHOR_ID", name = "IND_BOOK_AUTHOR_ID"))
 
 @Entity
-@NamedEntityGraph(name = "book-author-graph", attributeNodes = {@NamedAttributeNode("author")})
+
+@NamedEntityGraph(name = "book-author-genre-graph", attributeNodes = {
+        @NamedAttributeNode("author"),
+        @NamedAttributeNode("genres")})
+@NamedEntityGraph(name = "book-comments_graph", attributeNodes = {
+        @NamedAttributeNode("comments")})
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "BOOK_ID")
     private Long id;
 
-    @Column(name = "TITLE", length = 255)
+    @Column(name = "TITLE")
     private String title;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
@@ -65,7 +70,7 @@ public class Book {
             cascade = {CascadeType.REMOVE, CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true,
             fetch = FetchType.LAZY)
     @Fetch(FetchMode.SUBSELECT)
-    private List<BookComment> comments;
+    private List<Comment> comments;
 
     @Override
     public final boolean equals(Object o) {
@@ -100,16 +105,5 @@ public class Book {
                 "id = " + id + ", " +
                 "title = " + title + ", " +
                 "author_id" + author.getId() + ")";
-    }
-
-    public void setComments(List<BookComment> comments) {
-        if (this.comments == null) {
-            this.comments = comments;
-        } else {
-            this.comments.clear();
-            if (comments != null) {
-                this.comments.addAll(comments);
-            }
-        }
     }
 }

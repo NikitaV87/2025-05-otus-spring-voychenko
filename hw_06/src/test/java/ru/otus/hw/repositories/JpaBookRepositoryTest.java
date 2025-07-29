@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Import;
 import ru.otus.hw.TestUtils;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
-import ru.otus.models.BookComment;
+import ru.otus.models.Comment;
 import ru.otus.models.Genre;
 import ru.otus.repositories.BookRepository;
 import ru.otus.repositories.JpaBookRepository;
@@ -26,7 +26,7 @@ import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("Репозиторий на основе Jpa для работы с книгами ")
+@DisplayName("Репозиторий на основе JPA для работы с книгами ")
 @DataJpaTest
 @Import({JpaBookRepository.class})
 class JpaBookRepositoryTest {
@@ -66,17 +66,16 @@ class JpaBookRepositoryTest {
         TestUtils.equalBook(actualBook.get(), expectedBook);
     }
 
-    @DisplayName("должен загружать книгу по id вместе с полями genres, author и comments")
+    @DisplayName("должен загружать книгу по id вместе с полями genres, author")
     @Test
     void shouldReturnCorrectBookByIdWithoutLazyField() {
         val exceptedBook = em.find(Book.class, ID_BOOK_SELECT);
         Hibernate.initialize(exceptedBook.getComments());
         em.detach(exceptedBook);
 
-        val actualBook = bookRepository.findByIdWithFetchComments(ID_BOOK_SELECT);
-        em.detach(actualBook.get());
-
+        val actualBook = bookRepository.findById(ID_BOOK_SELECT);
         assertThat(actualBook).isPresent();
+        em.detach(actualBook.get());
 
         TestUtils.equalBook(actualBook.get(), exceptedBook);
     }
@@ -98,7 +97,7 @@ class JpaBookRepositoryTest {
         newBook.setTitle("Title_NewBook");
         newBook.setGenres(Set.of(em.find(Genre.class, dbGenreIds.get(1)),
                 em.find(Genre.class, dbGenreIds.get(5))));
-        newBook.setComments(List.of(BookComment.builder().text("Comment 1").book(newBook).build()));
+        newBook.setComments(List.of(Comment.builder().text("Comment 1").book(newBook).build()));
         val expectedBook = bookRepository.save(newBook);
 
         Optional<Book> actualBook = Optional.ofNullable(em.find(Book.class, expectedBook.getId()));

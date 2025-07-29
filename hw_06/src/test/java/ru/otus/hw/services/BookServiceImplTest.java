@@ -17,10 +17,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
-import ru.otus.models.BookComment;
+import ru.otus.models.Comment;
 import ru.otus.models.Genre;
 import ru.otus.repositories.JpaAuthorRepository;
-import ru.otus.repositories.JpaBookCommentRepository;
+import ru.otus.repositories.JpaCommentRepository;
 import ru.otus.repositories.JpaBookRepository;
 import ru.otus.repositories.JpaGenreRepository;
 import ru.otus.services.BookService;
@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("Тест сервиса BookServiceImpl")
 @Import({JpaBookRepository.class, JpaAuthorRepository.class,
-        JpaGenreRepository.class, JpaBookCommentRepository.class,
+        JpaGenreRepository.class, JpaCommentRepository.class,
         BookServiceImpl.class})
 @Transactional(propagation = Propagation.NEVER)
 public class BookServiceImplTest {
@@ -68,16 +68,11 @@ public class BookServiceImplTest {
 
     public static final Set<Long> UPDATE_BOOK_GENRE_IDS = Set.of(2L);
 
-    public static final List<String> UPDATE_BOOK_COMMENTS = List.of("UPDATE_BOOK_COMMENTS");
-
     public static final String NEW_BOOK_TITLE = "NEW_BOOK_TITLE";
 
     public static final Long NEW_BOOK_AUTHOR_ID = 1L;
 
     public static final Set<Long> NEW_BOOK_GENRES_IDS = Set.of(1L, 3L);
-
-    public static final List<String> NEW_BOOK_COMMENTS = List.of("NEW_COMMENT_1", "NEW_COMMENT_2");
-
 
     @BeforeEach
     void setUp() {
@@ -100,7 +95,6 @@ public class BookServiceImplTest {
         assertThat(actualBook.get().getTitle()).isEqualTo(exceptBook.getTitle());
         assertThat(actualBook.get().getAuthor()).isEqualTo(exceptBook.getAuthor());
         assertThat(actualBook.get().getGenres()).containsExactlyInAnyOrderElementsOf(exceptBook.getGenres());
-        assertThat(actualBook.get().getComments()).containsExactlyInAnyOrderElementsOf(exceptBook.getComments());
     }
 
     @DisplayName("должен загружать список всех книг")
@@ -116,7 +110,6 @@ public class BookServiceImplTest {
             assertThat(actualBook.getTitle()).isEqualTo(books.get(bookId).getTitle());
             assertThat(actualBook.getAuthor()).isEqualTo(books.get(bookId).getAuthor());
             assertThat(actualBook.getGenres()).containsExactlyInAnyOrderElementsOf(books.get(bookId).getGenres());
-            assertThat(actualBook.getComments()).containsExactlyInAnyOrderElementsOf(books.get(bookId).getComments());
         }
     }
 
@@ -124,7 +117,7 @@ public class BookServiceImplTest {
     @Order(3)
     @Test
     void insertTest() {
-        val expectedBook = bookService.insert(NEW_BOOK_TITLE, NEW_BOOK_AUTHOR_ID, NEW_BOOK_GENRES_IDS, NEW_BOOK_COMMENTS);
+        val expectedBook = bookService.insert(NEW_BOOK_TITLE, NEW_BOOK_AUTHOR_ID, NEW_BOOK_GENRES_IDS);
         Optional<Book> actualBook = bookService.findById(expectedBook.getId());
 
         assertThat(actualBook).isPresent().get().isEqualTo(expectedBook);
@@ -132,15 +125,13 @@ public class BookServiceImplTest {
         Assertions.assertEquals(actualBook.get().getAuthor().getId(), NEW_BOOK_AUTHOR_ID);
         assertThat(actualBook.get().getGenres().stream().map(Genre::getId).collect(Collectors.toSet()))
                 .containsExactlyInAnyOrderElementsOf(NEW_BOOK_GENRES_IDS);
-        assertThat(actualBook.get().getComments().stream().map(BookComment::getText))
-                .containsExactlyInAnyOrderElementsOf(NEW_BOOK_COMMENTS);
     }
 
     @DisplayName("должен обновлять книги")
     @Order(4)
     @Test
     void updateTest() {
-        Book expectedBook = bookService.update(UPDATE_BOOK_ID, UPDATE_BOOK_TITLE, UPDATE_BOOK_AUTHOR_ID, UPDATE_BOOK_GENRE_IDS, UPDATE_BOOK_COMMENTS);
+        Book expectedBook = bookService.update(UPDATE_BOOK_ID, UPDATE_BOOK_TITLE, UPDATE_BOOK_AUTHOR_ID, UPDATE_BOOK_GENRE_IDS);
         Optional<Book> actualBook = bookService.findById(UPDATE_BOOK_ID);
 
         assertThat(actualBook).isPresent().get().isEqualTo(expectedBook);
@@ -148,8 +139,6 @@ public class BookServiceImplTest {
         Assertions.assertEquals(actualBook.get().getAuthor().getId(), UPDATE_BOOK_AUTHOR_ID);
         assertThat(actualBook.get().getGenres().stream().map(Genre::getId).collect(Collectors.toSet()))
                 .containsExactlyInAnyOrderElementsOf(UPDATE_BOOK_GENRE_IDS);
-        assertThat(actualBook.get().getComments().stream().map(BookComment::getText))
-                .containsExactlyInAnyOrderElementsOf(UPDATE_BOOK_COMMENTS);
     }
 
     @DisplayName("должен удалять книгу по Id")
@@ -162,10 +151,6 @@ public class BookServiceImplTest {
     }
 
     private static List<Long> getBookIds() {
-        return LongStream.range(1, 4).boxed().toList();
-    }
-    private static List<Long> getBookAuthorIds() {
-
         return LongStream.range(1, 4).boxed().toList();
     }
 
@@ -183,13 +168,11 @@ public class BookServiceImplTest {
             Book book = Book.builder().id(bookId).title("BookTitle_" + bookId).author(author).genres(genres).build();
 
             List<Long> bookCommentIds = BOOK_ID_CONTAINS_BOOK_COMMENT_ID.get(bookId);
-            List<BookComment> comments;
+            List<Comment> comments;
 
             if (bookCommentIds != null) {
-                comments = bookCommentIds.stream().map(idBookComment -> {
-                    return BookComment.builder()
-                            .id(idBookComment).book(book).text("text_" + idBookComment).build();
-                }).toList();
+                comments = bookCommentIds.stream().map(idBookComment -> Comment.builder()
+                            .id(idBookComment).book(book).text("text_" + idBookComment).build()).toList();
             } else {
                 comments = Collections.emptyList();
             }

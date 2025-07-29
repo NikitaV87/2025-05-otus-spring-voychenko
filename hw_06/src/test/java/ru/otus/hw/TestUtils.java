@@ -4,7 +4,7 @@ package ru.otus.hw;
 import org.junit.jupiter.api.Assertions;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
-import ru.otus.models.BookComment;
+import ru.otus.models.Comment;
 import ru.otus.models.Genre;
 
 import java.util.List;
@@ -50,21 +50,21 @@ public class TestUtils {
         }
     }
 
-    public static void equalBookComment(BookComment b1, BookComment b2) {
+    public static void equalComment(Comment b1, Comment b2) {
         Assertions.assertEquals(b1.getId(), b2.getId(), "Идентификаторы Комментариев должны совпадать");
         Assertions.assertEquals(b1.getText(), b2.getText(), "Тексты комментариев должны совпадать");
         Assertions.assertEquals(b1.getBook(), b2.getBook(), "Идентификаторы книг должны совпадать");
     }
 
-    public static void equalBookComments(List<BookComment> bookComment1List, List<BookComment> bookComment2List) {
-        assertThat(bookComment1List).containsExactlyInAnyOrderElementsOf(bookComment2List);
+    public static void equalComments(List<Comment> comment1List, List<Comment> comment2List) {
+        assertThat(comment1List).containsExactlyInAnyOrderElementsOf(comment2List);
 
-        Map<Long, BookComment> genreMap2 = bookComment2List.stream().collect(Collectors.toMap(
-                BookComment::getId, Function.identity()));
+        Map<Long, Comment> genreMap2 = comment2List.stream().collect(Collectors.toMap(
+                Comment::getId, Function.identity()));
 
-        for (BookComment bookComment : bookComment1List) {
-            Long idGenre =  bookComment.getId();
-            equalBookComment(bookComment, genreMap2.get(idGenre));
+        for (Comment comment : comment1List) {
+            Long idGenre =  comment.getId();
+            equalComment(comment, genreMap2.get(idGenre));
         }
     }
 
@@ -74,7 +74,6 @@ public class TestUtils {
 
         equalAuthor(b1.getAuthor(), b2.getAuthor());
         equalGenres(b1.getGenres(), b2.getGenres());
-            equalBookComments(b1.getComments(), b2.getComments());
     }
 
     public static void equalBooks(List<Book> book1List, List<Book> book2List) {
