@@ -11,13 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
-import ru.otus.hw.TestUtils;
 import ru.otus.models.Author;
 import ru.otus.repositories.AuthorRepository;
 import ru.otus.repositories.JpaAuthorRepository;
 
 import java.util.List;
 import java.util.stream.LongStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Репозиторий на основе JPA для работы с автором ")
 @DataJpaTest
@@ -51,7 +52,7 @@ public class JpaAuthorRepositoryTest {
         val actualAuthor = authorRepository.findById(expectedId);
 
         Assertions.assertThat(actualAuthor).isPresent();
-        TestUtils.equalAuthor(actualAuthor.get(), expectedAuthor);
+        assertThat(actualAuthor.get()).usingRecursiveComparison().isEqualTo(expectedAuthor);
     }
 
 
@@ -59,8 +60,10 @@ public class JpaAuthorRepositoryTest {
     @Test
     void shouldReturnCorrectBooksList() {
         var expectedAuthors = idsAuthor.stream().map(id -> em.find(Author.class, id)).toList();
+        expectedAuthors.forEach(a -> em.detach(a));
+
         var actualAuthors = authorRepository.findAll();
 
-        TestUtils.equalAuthors(actualAuthors, expectedAuthors);
+        assertThat(actualAuthors).usingRecursiveComparison().isEqualTo(expectedAuthors);
     }
 }

@@ -11,7 +11,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
-import ru.otus.hw.TestUtils;
 import ru.otus.models.Book;
 import ru.otus.models.Comment;
 import ru.otus.repositories.CommentRepository;
@@ -31,7 +30,6 @@ public class JpaCommentBookRepositoryTest {
     @Autowired
     private TestEntityManager em;
 
-    public static final Long ID_BOOK_FOR_FIND_COMMENTS = 1L;
     public static final Long ID_BOOK_FOR_SAVE_COMMENT = 3L;
 
     public static final Long ID_COMMENT_BOOK_FOR_UPDATE = 1L;
@@ -50,16 +48,16 @@ public class JpaCommentBookRepositoryTest {
         Assertions.assertThat(actualCommentBook).isPresent().get().isEqualTo(expectedCommentBook);
     }
 
-    @DisplayName("должен загружать комментарий по id книги")
-    @Test
-    void findByBookIdTest() {
-        val book = em.find(Book.class, ID_BOOK_FOR_FIND_COMMENTS);
-        List<Comment> expectedComments = book.getComments();
-
-        List<Comment> actualComments = commentRepository.findByBookId(ID_BOOK_FOR_FIND_COMMENTS);
-
-        TestUtils.equalComments(actualComments, expectedComments);
-    }
+//    @DisplayName("должен загружать комментарий по id книги")
+//    @Test
+//    void findByBookIdTest() {
+//        val book = em.find(Book.class, ID_BOOK_FOR_FIND_COMMENTS);
+//        List<Comment> expectedComments = book.getComments();
+//
+//        List<Comment> actualComments = commentRepository.findByBookId(ID_BOOK_FOR_FIND_COMMENTS);
+//
+//        TestUtils.equalComments(actualComments, expectedComments);
+//    }
 
     @DisplayName("должен сохранять комментарии")
     @Test

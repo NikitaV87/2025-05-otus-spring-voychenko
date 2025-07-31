@@ -15,9 +15,8 @@ import ru.otus.repositories.JpaGenreRepository;
 import ru.otus.services.GenreService;
 import ru.otus.services.GenreServiceImpl;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 @DataJpaTest
@@ -31,7 +30,18 @@ public class GenreServiceImplTest {
     @Autowired
     private GenreService genreService;
 
-    private Set<Genre> genres;
+    private List<Genre> genres;
+
+    private static List<Genre> getGenres() {
+        List<Long> ids = LongStream.range(1, 7).boxed().toList();
+        List<Genre> genres = new ArrayList<>();
+
+        for (Long id : ids) {
+            genres.add(Genre.builder().id(id).name("Genre_" + id).build());
+        }
+
+        return genres;
+    }
 
     @BeforeEach
     void setUp() {
@@ -42,23 +52,9 @@ public class GenreServiceImplTest {
     @Test
     void findAll() {
         var actualGenres = genreService.findAll();
+        List<Genre> expectedGenres = genres;
 
-        Set<Genre> expectedGenres = genres;
-
-        Assertions.assertThat(actualGenres).containsExactlyInAnyOrderElementsOf(expectedGenres);
-        Assertions.assertThat(actualGenres.stream().map(Genre::getName).toList()).containsExactlyInAnyOrderElementsOf(
-                expectedGenres.stream().map(Genre::getName).toList());
-    }
-
-    private static List<Long> getIdsGenre() {
-        return LongStream.range(1, 7).boxed().toList();
-    }
-
-    private static Set<Genre> getGenres() {
-        List<Long> genreIds = getIdsGenre();
-
-        return genreIds.stream().map(genreId ->
-                Genre.builder().id(genreId).name("Genre_" + genreId).build()).collect(Collectors.toSet());
+        Assertions.assertThat(actualGenres).usingRecursiveComparison().isEqualTo(expectedGenres);
     }
 
 }

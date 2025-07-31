@@ -2,8 +2,8 @@ package ru.otus.services;
 
 import ru.otus.models.Genre;
 
-import java.util.Set;
+import java.util.List;
 
 public interface GenreService {
-    Set<Genre> findAll();
+    List<Genre> findAll();
 }
