@@ -9,7 +9,6 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedEntityGraph;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.Id;
@@ -28,7 +27,6 @@ import org.hibernate.proxy.HibernateProxy;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -39,11 +37,8 @@ import java.util.Set;
 
 @Entity
 
-@NamedEntityGraph(name = "book-author-genre-graph", attributeNodes = {
-        @NamedAttributeNode("author"),
-        @NamedAttributeNode("genres")})
-@NamedEntityGraph(name = "book-comments_graph", attributeNodes = {
-        @NamedAttributeNode("comments")})
+@NamedEntityGraph(name = "book-author-graph", attributeNodes = {
+        @NamedAttributeNode("author")})
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,7 +50,7 @@ public class Book {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "AUTHOR_ID", nullable = false)
-    @Fetch(FetchMode.SELECT)
+    @Fetch(FetchMode.JOIN)
     private Author author;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -63,14 +58,8 @@ public class Book {
             joinColumns = @JoinColumn(name = "BOOK_ID"),
             inverseJoinColumns = @JoinColumn(name = "GENRE_ID"),
             indexes = {@Index(name = "IND_BOOK_GENRE_BOOK_ID", columnList = "BOOK_ID")})
-    @Fetch(FetchMode.JOIN)
-    private Set<Genre> genres;
-
-    @OneToMany(mappedBy = "book",
-            cascade = {CascadeType.REMOVE, CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true,
-            fetch = FetchType.LAZY)
     @Fetch(FetchMode.SUBSELECT)
-    private List<Comment> comments;
+    private List<Genre> genres;
 
     @Override
     public final boolean equals(Object o) {

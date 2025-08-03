@@ -7,6 +7,6 @@ import ru.otus.models.Book;
 import java.util.List;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
-    @EntityGraph(attributePaths = {"author", "genres"})
+    @EntityGraph(attributePaths = {"author"})
     List<Book> findAll();
 }

@@ -17,12 +17,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
-import ru.otus.models.Comment;
 import ru.otus.models.Genre;
 import ru.otus.services.BookService;
 import ru.otus.services.BookServiceImpl;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,9 +42,6 @@ public class BookServiceImplTest {
     private Map<Long, Book> books;
 
     private static final Map<Long, Long> BOOK_ID_CONTAINS_AUTHOR_ID = Map.of(1L,1L, 2L, 2L, 3L, 3L);
-
-    private static final Map<Long, List<Long>> BOOK_ID_CONTAINS_BOOK_COMMENT_ID = Map.of(1L, List.of(1L, 2L, 3L),
-            2L, List.of(4L));
 
     private static final Map<Long, List<Long>> BOOK_ID_CONTAINS_GENRE_ID = Map.of(1L, List.of(1L, 2L),
             2L, List.of(3L, 4L), 3L, List.of(5L, 6L));
@@ -82,12 +77,8 @@ public class BookServiceImplTest {
         val exceptBook = books.get(expectedBookId);
         val actualBook = bookService.findById(expectedBookId);
 
-        assertThat(actualBook).isPresent()
-                .get()
-                .isEqualTo(exceptBook);
-        assertThat(actualBook.get().getTitle()).isEqualTo(exceptBook.getTitle());
-        assertThat(actualBook.get().getAuthor()).isEqualTo(exceptBook.getAuthor());
-        assertThat(actualBook.get().getGenres()).containsExactlyInAnyOrderElementsOf(exceptBook.getGenres());
+        assertThat(actualBook).isPresent();
+        assertThat(actualBook.get()).usingRecursiveComparison().ignoringFields("comments").isEqualTo(exceptBook);
     }
 
     @DisplayName("должен загружать список всех книг")
@@ -97,13 +88,7 @@ public class BookServiceImplTest {
         val actualBooks = bookService.findAll();
         List<Book> expectedBooks = books.values().stream().toList();
 
-        assertThat(actualBooks).containsExactlyElementsOf(expectedBooks);
-        for (Book actualBook : actualBooks) {
-            Long bookId = actualBook.getId();
-            assertThat(actualBook.getTitle()).isEqualTo(books.get(bookId).getTitle());
-            assertThat(actualBook.getAuthor()).isEqualTo(books.get(bookId).getAuthor());
-            assertThat(actualBook.getGenres()).containsExactlyInAnyOrderElementsOf(books.get(bookId).getGenres());
-        }
+        assertThat(actualBooks).usingRecursiveComparison().ignoringFields("comments").isEqualTo(expectedBooks);
     }
 
     @DisplayName("должен добавлять новые книги")
@@ -113,10 +98,11 @@ public class BookServiceImplTest {
         val expectedBook = bookService.insert(NEW_BOOK_TITLE, NEW_BOOK_AUTHOR_ID, NEW_BOOK_GENRES_IDS);
         Optional<Book> actualBook = bookService.findById(expectedBook.getId());
 
-        assertThat(actualBook).isPresent().get().isEqualTo(expectedBook);
+        assertThat(actualBook).isPresent();
+
         Assertions.assertEquals(actualBook.get().getTitle(), NEW_BOOK_TITLE);
         Assertions.assertEquals(actualBook.get().getAuthor().getId(), NEW_BOOK_AUTHOR_ID);
-        assertThat(actualBook.get().getGenres().stream().map(Genre::getId).collect(Collectors.toSet()))
+        assertThat(actualBook.get().getGenres().stream().map(Genre::getId).toList())
                 .containsExactlyInAnyOrderElementsOf(NEW_BOOK_GENRES_IDS);
     }
 
@@ -159,18 +145,6 @@ public class BookServiceImplTest {
                     Genre.builder().id(genreId).name("Genre_" + genreId).build()).toList();
 
             Book book = Book.builder().id(bookId).title("BookTitle_" + bookId).author(author).genres(genres).build();
-
-            List<Long> bookCommentIds = BOOK_ID_CONTAINS_BOOK_COMMENT_ID.get(bookId);
-            List<Comment> comments;
-
-            if (bookCommentIds != null) {
-                comments = bookCommentIds.stream().map(idBookComment -> Comment.builder()
-                            .id(idBookComment).book(book).text("text_" + idBookComment).build()).toList();
-            } else {
-                comments = Collections.emptyList();
-            }
-
-            book.setComments(comments);
 
             books.put(bookId, book);
         }

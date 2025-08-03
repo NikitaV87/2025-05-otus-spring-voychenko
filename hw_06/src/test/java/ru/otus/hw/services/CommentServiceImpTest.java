@@ -15,7 +15,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import ru.otus.hw.TestUtils;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
 import ru.otus.models.Comment;
@@ -32,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
@@ -93,11 +91,8 @@ public class CommentServiceImpTest {
         val exceptComment = commentsById.get(expectedBookId);
         val actualComment = commentService.findById(expectedBookId);
 
-        assertThat(actualComment).isPresent()
-                .get()
-                .isEqualTo(exceptComment);
-        TestUtils.equalComment(actualComment.get(), exceptComment);
-        TestUtils.equalBook(actualComment.get().getBook(), exceptComment.getBook());
+        assertThat(actualComment).isPresent();
+        assertThat(actualComment.get()).usingRecursiveComparison().isEqualTo(exceptComment);
     }
 
     @DisplayName("должен загружать комментарии по id книги")
@@ -107,8 +102,7 @@ public class CommentServiceImpTest {
         val exceptComments = commentsByBookId.get(BOOK_ID_WITH_COMMENTS);
         val actualComments = commentService.findByBookId(BOOK_ID_WITH_COMMENTS);
 
-        assertThat(actualComments).containsExactlyInAnyOrderElementsOf(exceptComments);
-        TestUtils.equalComments(actualComments, exceptComments);
+        assertThat(actualComments).usingRecursiveComparison().isEqualTo(exceptComments);
     }
 
     @DisplayName("должен вставлять новые комментарии")
@@ -138,7 +132,7 @@ public class CommentServiceImpTest {
 
     @DisplayName("должен удалять комментарии по ID")
     @Test
-    @Order(4)
+    @Order(5)
     void deleteTest() {
         commentService.deleteById(FOR_DEL_COMMENT_ID);
         Optional<Comment> deletedComment = commentService.findById(FOR_DEL_COMMENT_ID);
@@ -153,8 +147,8 @@ public class CommentServiceImpTest {
         for (Long bookId: COMMENT_ID_BY_BOOK_ID.keySet()) {
             Long idAuthor =  BOOK_ID_CONTAINS_AUTHOR_ID.get(bookId);
             Author author = Author.builder().id(idAuthor).fullName("Author_" + idAuthor).build();
-            Set<Genre> genres = BOOK_ID_CONTAINS_GENRE_ID.get(bookId).stream().map(genreId ->
-                    Genre.builder().id(genreId).name("Genre_" + genreId).build()).collect(Collectors.toSet());
+            List<Genre> genres = BOOK_ID_CONTAINS_GENRE_ID.get(bookId).stream().map(genreId ->
+                    Genre.builder().id(genreId).name("Genre_" + genreId).build()).toList();
             Book book = Book.builder().id(bookId).title("BookTitle_" + bookId).author(author).genres(genres).build();
 
             List<Comment> bookComments = COMMENT_ID_BY_BOOK_ID.get(bookId).stream().map(idBookComment ->

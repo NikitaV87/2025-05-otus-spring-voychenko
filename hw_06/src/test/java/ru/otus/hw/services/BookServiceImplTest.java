@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
-import ru.otus.models.Comment;
 import ru.otus.models.Genre;
 import ru.otus.repositories.JpaAuthorRepository;
 import ru.otus.repositories.JpaCommentRepository;
@@ -26,12 +25,10 @@ import ru.otus.repositories.JpaGenreRepository;
 import ru.otus.services.BookService;
 import ru.otus.services.BookServiceImpl;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -52,9 +49,6 @@ public class BookServiceImplTest {
 
     private static final Map<Long, Long> BOOK_ID_CONTAINS_AUTHOR_ID = Map.of(1L,1L, 2L, 2L, 3L, 3L);
 
-    private static final Map<Long, List<Long>> BOOK_ID_CONTAINS_BOOK_COMMENT_ID = Map.of(1L, List.of(1L, 2L, 3L),
-            2L, List.of(4L));
-
     private static final Map<Long, List<Long>> BOOK_ID_CONTAINS_GENRE_ID = Map.of(1L, List.of(1L, 2L),
             2L, List.of(3L, 4L), 3L, List.of(5L, 6L));
 
@@ -66,13 +60,13 @@ public class BookServiceImplTest {
 
     public static final Long UPDATE_BOOK_AUTHOR_ID = 2L;
 
-    public static final Set<Long> UPDATE_BOOK_GENRE_IDS = Set.of(2L);
+    public static final List<Long> UPDATE_BOOK_GENRE_IDS = List.of(2L);
 
     public static final String NEW_BOOK_TITLE = "NEW_BOOK_TITLE";
 
     public static final Long NEW_BOOK_AUTHOR_ID = 1L;
 
-    public static final Set<Long> NEW_BOOK_GENRES_IDS = Set.of(1L, 3L);
+    public static final List<Long> NEW_BOOK_GENRES_IDS = List.of(1L, 3L);
 
     @BeforeEach
     void setUp() {
@@ -86,15 +80,11 @@ public class BookServiceImplTest {
     @ParameterizedTest
     @MethodSource("getBookIds")
     void findByIdTest(Long expectedBookId) {
-        val exceptBook = books.get(expectedBookId);
-        val actualBook = bookService.findById(expectedBookId);
+        val expectedBook = books.get(expectedBookId);
+        val actualBook = bookService.findById(expectedBook.getId());
 
-        assertThat(actualBook).isPresent()
-                .get()
-                .isEqualTo(exceptBook);
-        assertThat(actualBook.get().getTitle()).isEqualTo(exceptBook.getTitle());
-        assertThat(actualBook.get().getAuthor()).isEqualTo(exceptBook.getAuthor());
-        assertThat(actualBook.get().getGenres()).containsExactlyInAnyOrderElementsOf(exceptBook.getGenres());
+        assertThat(actualBook).isPresent();
+        assertThat(actualBook.get()).usingRecursiveComparison().isEqualTo(expectedBook);
     }
 
     @DisplayName("должен загружать список всех книг")
@@ -104,13 +94,7 @@ public class BookServiceImplTest {
         val actualBooks = bookService.findAll();
         List<Book> expectedBooks = books.values().stream().toList();
 
-        assertThat(actualBooks).containsExactlyElementsOf(expectedBooks);
-        for (Book actualBook : actualBooks) {
-            Long bookId = actualBook.getId();
-            assertThat(actualBook.getTitle()).isEqualTo(books.get(bookId).getTitle());
-            assertThat(actualBook.getAuthor()).isEqualTo(books.get(bookId).getAuthor());
-            assertThat(actualBook.getGenres()).containsExactlyInAnyOrderElementsOf(books.get(bookId).getGenres());
-        }
+        assertThat(actualBooks).usingRecursiveComparison().isEqualTo(expectedBooks);
     }
 
     @DisplayName("должен добавлять новые книги")
@@ -162,22 +146,10 @@ public class BookServiceImplTest {
             Long idAuthor =  BOOK_ID_CONTAINS_AUTHOR_ID.get(bookId);
             Author author = Author.builder().id(idAuthor).fullName("Author_" + idAuthor).build();
 
-            Set<Genre> genres = BOOK_ID_CONTAINS_GENRE_ID.get(bookId).stream().map(genreId ->
-                    Genre.builder().id(genreId).name("Genre_" + genreId).build()).collect(Collectors.toSet());
+            List<Genre> genres = BOOK_ID_CONTAINS_GENRE_ID.get(bookId).stream().map(genreId ->
+                    Genre.builder().id(genreId).name("Genre_" + genreId).build()).toList();
 
             Book book = Book.builder().id(bookId).title("BookTitle_" + bookId).author(author).genres(genres).build();
-
-            List<Long> bookCommentIds = BOOK_ID_CONTAINS_BOOK_COMMENT_ID.get(bookId);
-            List<Comment> comments;
-
-            if (bookCommentIds != null) {
-                comments = bookCommentIds.stream().map(idBookComment -> Comment.builder()
-                            .id(idBookComment).book(book).text("text_" + idBookComment).build()).toList();
-            } else {
-                comments = Collections.emptyList();
-            }
-
-            book.setComments(comments);
 
             books.put(bookId, book);
         }

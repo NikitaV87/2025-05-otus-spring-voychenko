@@ -1,6 +1,7 @@
 package ru.otus.services;
 
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.exceptions.EntityNotFoundException;
@@ -13,7 +14,6 @@ import ru.otus.repositories.GenreRepository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -29,18 +29,26 @@ public class BookServiceImpl implements BookService {
     @Transactional(readOnly = true)
     @Override
     public Optional<Book> findById(long id) {
-        return bookRepository.findById(id);
+        Optional<Book> book = bookRepository.findById(id);
+
+        book.ifPresent(b -> Hibernate.initialize(b.getGenres()));
+
+        return book;
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<Book> findAll() {
-        return bookRepository.findAll();
+        List<Book> books = bookRepository.findAll();
+
+        books.forEach(b -> Hibernate.initialize(b.getGenres()));
+
+        return books;
     }
 
     @Transactional
     @Override
-    public Book insert(String title, long authorId, Set<Long> genresIds) {
+    public Book insert(String title, long authorId, List<Long> genresIds) {
         var genres = getGenresWithValidate(genresIds);
         var author = getAuthorWithValidate(authorId);
 
@@ -51,7 +59,7 @@ public class BookServiceImpl implements BookService {
 
     @Transactional
     @Override
-    public Book update(Long id, String title, long authorId, Set<Long> genresIds) {
+    public Book update(Long id, String title, long authorId, List<Long> genresIds) {
 
         var genres = getGenresWithValidate(genresIds);
         var author = getAuthorWithValidate(authorId);
@@ -75,7 +83,7 @@ public class BookServiceImpl implements BookService {
         bookRepository.deleteById(id);
     }
 
-    private Set<Genre> getGenresWithValidate(Set<Long> genreIds) {
+    private List<Genre> getGenresWithValidate(List<Long> genreIds) {
         if (isEmpty(genreIds)) {
             throw new IllegalArgumentException("Genres ids must not be null");
         }

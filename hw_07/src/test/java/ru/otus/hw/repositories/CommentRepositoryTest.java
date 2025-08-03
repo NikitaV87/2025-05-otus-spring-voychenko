@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.transaction.annotation.Transactional;
-import ru.otus.hw.TestUtils;
 import ru.otus.models.Book;
 import ru.otus.models.Comment;
 import ru.otus.repositories.CommentRepository;
@@ -21,7 +20,7 @@ import java.util.stream.LongStream;
 
 @DisplayName("Репозиторий на основе Jpa для работы с комментарием")
 @DataJpaTest
-public class CommentBookRepositoryTest {
+public class CommentRepositoryTest {
     @Autowired
     private CommentRepository commentRepository;
 
@@ -44,7 +43,9 @@ public class CommentBookRepositoryTest {
         val expectedCommentBook = em.find(Comment.class, id);
         val actualCommentBook = commentRepository.findById(id);
 
-        Assertions.assertThat(actualCommentBook).isPresent().get().isEqualTo(expectedCommentBook);
+        Assertions.assertThat(actualCommentBook).isPresent().get()
+                .usingRecursiveComparison()
+                .isEqualTo(expectedCommentBook);
     }
 
     @DisplayName("должен загружать комментарий по id книги")
@@ -55,7 +56,7 @@ public class CommentBookRepositoryTest {
 
         List<Comment> actualComments = commentRepository.findByBookId(ID_BOOK_FOR_FIND_COMMENTS);
 
-        TestUtils.equalComments(actualComments, expectedComments);
+        Assertions.assertThat(actualComments).usingRecursiveComparison().isEqualTo(expectedComments);
     }
 
     @DisplayName("должен сохранять комментарии")

@@ -1,6 +1,5 @@
 package ru.otus.hw.services;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.LongStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @DataJpaTest
 @DisplayName("Тест сервиса AuthorServicesImpl")
 @Import({JpaAuthorRepository.class, AuthorServiceImpl.class})
@@ -33,14 +34,12 @@ public class AuthorServicesImplTest {
         authors = getAuthors();
     }
 
-    @DisplayName("Должен находить все книги")
+    @DisplayName("Должен находить всех авторов")
     @Test
     void getAllAuthors() {
         var actualAuthors = authorService.findAll();
 
-        Assertions.assertThat(actualAuthors).containsExactlyElementsOf(authors);
-        Assertions.assertThat(actualAuthors.stream().map(Author::getFullName).toList())
-                .containsExactlyElementsOf(authors.stream().map(Author::getFullName).toList());
+        assertThat(actualAuthors).usingRecursiveComparison().isEqualTo(authors);
     }
 
     private static List<Author> getAuthors() {

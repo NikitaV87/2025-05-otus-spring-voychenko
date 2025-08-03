@@ -32,14 +32,12 @@ public class AuthorServicesImplTest {
         authors = getAuthors();
     }
 
-    @DisplayName("Должен находить все книги")
+    @DisplayName("Должен находить всех авторов")
     @Test
     void getAllAuthors() {
         var actualAuthors = authorService.findAll();
 
-        Assertions.assertThat(actualAuthors).containsExactlyElementsOf(authors);
-        Assertions.assertThat(actualAuthors.stream().map(Author::getFullName).toList())
-                .containsExactlyElementsOf(authors.stream().map(Author::getFullName).toList());
+        Assertions.assertThat(actualAuthors).usingRecursiveComparison().isEqualTo(authors);
     }
 
     private static List<Author> getAuthors() {

@@ -1,18 +1,13 @@
 package ru.otus.repositories;
 
-import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 import ru.otus.models.Comment;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-
-import static org.springframework.data.jpa.repository.EntityGraph.EntityGraphType.FETCH;
 
 @Repository
 public class JpaCommentRepository implements CommentRepository {
@@ -26,20 +21,13 @@ public class JpaCommentRepository implements CommentRepository {
 
     @Override
     public Optional<Comment> findById(Long id) {
-        EntityGraph<?> entityGraph = em.getEntityGraph("comment-book-graph");
-
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(FETCH.getKey(), entityGraph);
-
-        return Optional.ofNullable(em.find(Comment.class, id, properties));
+        return Optional.ofNullable(em.find(Comment.class, id));
     }
 
     @Override
     public List<Comment> findByBookId(Long id) {
-        EntityGraph<?> entityGraph = em.getEntityGraph("comment-book-graph");
         TypedQuery<Comment> query = em.createQuery("select c from Comment c where c.book.id = :id",
                 Comment.class);
-        query.setHint(FETCH.getKey(), entityGraph);
         query.setParameter("id", id);
 
         return query.getResultList();

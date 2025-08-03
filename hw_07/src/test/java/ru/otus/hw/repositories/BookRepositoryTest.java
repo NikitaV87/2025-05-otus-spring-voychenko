@@ -10,7 +10,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import ru.otus.hw.TestUtils;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
 import ru.otus.models.Comment;
@@ -58,22 +57,21 @@ class BookRepositoryTest {
         val actualBook = bookRepository.findById(expectedBook.getId());
 
         assertThat(actualBook).isPresent();
-
-        TestUtils.equalBook(actualBook.get(), expectedBook);
+        assertThat(actualBook.get()).usingRecursiveComparison().isEqualTo(expectedBook);
     }
 
-    @DisplayName("должен загружать книгу по id вместе с полями genres, author")
+    @DisplayName("должен загружать книгу по id вместе с полем author")
     @Test
     void shouldReturnCorrectBookByIdWithoutLazyField() {
         val exceptedBook = em.find(Book.class, ID_BOOK_SELECT);
-        Hibernate.initialize(exceptedBook.getComments());
+        Hibernate.initialize(exceptedBook.getAuthor());
         em.detach(exceptedBook);
 
         val actualBook = bookRepository.findById(ID_BOOK_SELECT);
         assertThat(actualBook).isPresent();
         em.detach(actualBook.get());
 
-        TestUtils.equalBook(actualBook.get(), exceptedBook);
+        assertThat(actualBook.get()).usingRecursiveComparison().comparingOnlyFields("author").isEqualTo(exceptedBook);
     }
 
     @DisplayName("должен загружать список всех книг")
@@ -82,7 +80,21 @@ class BookRepositoryTest {
         val actualBooks = bookRepository.findAll();
         List<Book> expectedBooks = dbBooksIds.stream().map(id -> em.find(Book.class, id)).toList();
 
-        TestUtils.equalBooks(actualBooks, expectedBooks);
+        assertThat(actualBooks).usingRecursiveComparison().isEqualTo(expectedBooks);
+    }
+
+    @DisplayName("должен загружать все книги вместе с полем author")
+    @Test
+    void shouldReturnCorrectBookAllWithoutLazyField() {
+        val exceptedBook = em.find(Book.class, ID_BOOK_SELECT);
+        Hibernate.initialize(exceptedBook.getAuthor());
+        em.detach(exceptedBook);
+
+        val actualBook = bookRepository.findById(ID_BOOK_SELECT);
+        assertThat(actualBook).isPresent();
+        em.detach(actualBook.get());
+
+        assertThat(actualBook.get()).usingRecursiveComparison().comparingOnlyFields("author").isEqualTo(exceptedBook);
     }
 
     @DisplayName("должен сохранять новую книгу")
@@ -98,8 +110,7 @@ class BookRepositoryTest {
 
         Optional<Book> actualBook = Optional.ofNullable(em.find(Book.class, expectedBook.getId()));
 
-        assertThat(actualBook).isPresent();
-        TestUtils.equalBook(actualBook.get(), expectedBook);
+        assertThat(actualBook).isPresent().get().usingRecursiveComparison().isEqualTo(expectedBook);
     }
 
     @DisplayName("должен сохранять измененную книгу")
@@ -115,7 +126,7 @@ class BookRepositoryTest {
         val actualBook = Optional.ofNullable(em.find(Book.class, ID_BOOK_UPDATE));
 
         assertThat(actualBook).isPresent();
-        TestUtils.equalBook(actualBook.get(), expectedBook);
+        assertThat(actualBook.get()).usingRecursiveComparison().comparingOnlyFields("title").isEqualTo(expectedBook);
     }
 
     @DisplayName("должен удалять книгу по id ")

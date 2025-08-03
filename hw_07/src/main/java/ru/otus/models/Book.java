@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Builder;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.proxy.HibernateProxy;
@@ -53,13 +54,13 @@ public class Book {
             joinColumns = @JoinColumn(name = "BOOK_ID"),
             inverseJoinColumns = @JoinColumn(name = "GENRE_ID"),
             indexes = {@Index(name = "IND_BOOK_GENRE_BOOK_ID", columnList = "BOOK_ID")})
-    @Fetch(FetchMode.JOIN)
+    @Fetch(FetchMode.SUBSELECT)
     private List<Genre> genres;
 
     @OneToMany(mappedBy = "book",
             cascade = {CascadeType.REMOVE, CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true,
             fetch = FetchType.LAZY)
-    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 10)
     private List<Comment> comments;
 
     @Override

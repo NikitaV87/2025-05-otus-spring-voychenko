@@ -15,7 +15,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import ru.otus.hw.TestUtils;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
 import ru.otus.models.Comment;
@@ -88,11 +87,8 @@ public class CommentServiceImpTest {
         val exceptComment = commentsById.get(expectedBookId);
         val actualComment = commentService.findById(expectedBookId);
 
-        assertThat(actualComment).isPresent()
-                .get()
-                .isEqualTo(exceptComment);
-        TestUtils.equalComment(actualComment.get(), exceptComment);
-        TestUtils.equalBook(actualComment.get().getBook(), exceptComment.getBook());
+        assertThat(actualComment).isPresent();
+        assertThat(actualComment.get()).usingRecursiveComparison().comparingOnlyFields("id", "text", "book.id", "book.title", "book.author", "book.genres").isEqualTo(exceptComment);
     }
 
     @DisplayName("должен загружать комментарии по id книги")
@@ -100,10 +96,9 @@ public class CommentServiceImpTest {
     @Order(2)
     void findByBookIdTest() {
         val exceptComments = commentsByBookId.get(BOOK_ID_WITH_COMMENTS);
-        val actualComments = commentService.findByBookId(BOOK_ID_WITH_COMMENTS);
+        val actualComments = commentService.findByBookIdWithBook(BOOK_ID_WITH_COMMENTS);
 
-        assertThat(actualComments).containsExactlyInAnyOrderElementsOf(exceptComments);
-        TestUtils.equalComments(actualComments, exceptComments);
+        assertThat(actualComments).usingRecursiveComparison().comparingOnlyFields("id", "text", "book.id", "book.title", "book.author", "genre.id", "genre.name").isEqualTo(exceptComments);
     }
 
     @DisplayName("должен вставлять новые комментарии")
@@ -141,7 +136,6 @@ public class CommentServiceImpTest {
         assertThat(deletedComment).isEmpty();
     }
 
-
     private static Map<Long, Comment> getComments() {
         List<Comment> allComment = new ArrayList<>();
 
@@ -153,8 +147,8 @@ public class CommentServiceImpTest {
             Book book = Book.builder().id(bookId).title("BookTitle_" + bookId).author(author).genres(genres).build();
 
             List<Comment> bookComments = COMMENT_ID_BY_BOOK_ID.get(bookId).stream().map(idBookComment ->
-                Comment.builder()
-                        .id(idBookComment).book(book).text("text_" + idBookComment).build()).toList();
+                    Comment.builder()
+                            .id(idBookComment).book(book).text("text_" + idBookComment).build()).toList();
 
             allComment.addAll(bookComments);
         }

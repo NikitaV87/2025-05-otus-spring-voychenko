@@ -1,6 +1,7 @@
 package ru.otus.services;
 
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.exceptions.EntityNotFoundException;
@@ -22,12 +23,20 @@ public class CommentServiceImpl implements CommentService {
     @Transactional(readOnly = true)
     @Override
     public Optional<Comment> findById(Long id) {
-        return commentRepository.findById(id);
+        Optional<Comment> comment = commentRepository.findById(id);
+
+        comment.ifPresent(c -> Hibernate.initialize(c.getBook().getGenres()));
+
+        return comment;
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<Comment> findByBookId(Long id) {
+        List<Comment> comments = commentRepository.findByBookId(id);
+
+        comments.forEach(c -> Hibernate.initialize(c.getBook().getGenres()));
+
         return commentRepository.findByBookId(id);
     }
 

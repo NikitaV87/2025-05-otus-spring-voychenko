@@ -26,7 +26,7 @@ public class JpaBookRepository implements BookRepository {
 
     @Override
     public Optional<Book> findById(long id) {
-        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-genre-graph");
+        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-graph");
 
         Map<String, Object> properties = new HashMap<>();
         properties.put(FETCH.getKey(), entityGraph);
@@ -36,7 +36,7 @@ public class JpaBookRepository implements BookRepository {
 
     @Override
     public List<Book> findAll() {
-        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-genre-graph");
+        EntityGraph<?> entityGraph = em.getEntityGraph("book-author-graph");
         TypedQuery<Book> query = em.createQuery("select distinct b from Book b", Book.class);
         query.setHint(FETCH.getKey(), entityGraph);
 

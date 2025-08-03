@@ -1,6 +1,7 @@
 package ru.otus.services;
 
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.exceptions.EntityNotFoundException;
@@ -28,13 +29,21 @@ public class BookServiceImpl implements BookService {
     @Transactional(readOnly = true)
     @Override
     public Optional<Book> findById(long id) {
+        Optional<Book> book = bookRepository.findById(id);
+
+        book.ifPresent(b -> Hibernate.initialize(b.getGenres()));
+
         return bookRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<Book> findAll() {
-        return bookRepository.findAll();
+        List<Book> books = bookRepository.findAll();
+
+        books.forEach(b -> Hibernate.initialize(b.getGenres()));
+
+        return books;
     }
 
     @Transactional
