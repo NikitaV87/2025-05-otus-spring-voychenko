@@ -1,7 +1,6 @@
 package ru.otus.hw.repositories;
 
 import lombok.val;
-import org.hibernate.Hibernate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -91,7 +90,6 @@ class JpaBookRepositoryTest {
     @Test
     void shouldSaveUpdatedBook() {
         val bookForUpdate = em.find(Book.class, ID_BOOK_UPDATE);
-        Hibernate.initialize(bookForUpdate.getGenres());
         bookForUpdate.setTitle("Tittle_new");
         em.detach(bookForUpdate);
 

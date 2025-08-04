@@ -31,8 +31,6 @@ public class BookServiceImpl implements BookService {
     public Optional<Book> findById(long id) {
         Optional<Book> book = bookRepository.findById(id);
 
-        book.ifPresent(b -> Hibernate.initialize(b.getGenres()));
-
         return book;
     }
 
