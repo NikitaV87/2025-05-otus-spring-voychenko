@@ -60,11 +60,12 @@ class BookRepositoryTest {
         assertThat(actualBook.get()).usingRecursiveComparison().isEqualTo(expectedBook);
     }
 
-    @DisplayName("должен загружать книгу по id вместе с полем author")
+    @DisplayName("должен загружать книгу по id вместе с полем author, genres")
     @Test
     void shouldReturnCorrectBookByIdWithoutLazyField() {
         val exceptedBook = em.find(Book.class, ID_BOOK_SELECT);
         Hibernate.initialize(exceptedBook.getAuthor());
+        Hibernate.initialize(exceptedBook.getGenres());
         em.detach(exceptedBook);
 
         val actualBook = bookRepository.findById(ID_BOOK_SELECT);
