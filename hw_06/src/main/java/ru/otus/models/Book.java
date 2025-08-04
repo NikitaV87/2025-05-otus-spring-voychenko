@@ -34,11 +34,11 @@ import java.util.Objects;
 @NoArgsConstructor
 @Builder
 @Table(name = "BOOK", indexes = @Index(columnList = "AUTHOR_ID", name = "IND_BOOK_AUTHOR_ID"))
-
 @Entity
-
 @NamedEntityGraph(name = "book-author-graph", attributeNodes = {
         @NamedAttributeNode("author")})
+@NamedEntityGraph(name = "book-author-genres-graph", attributeNodes = {
+        @NamedAttributeNode("author"), @NamedAttributeNode("genres")})
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
