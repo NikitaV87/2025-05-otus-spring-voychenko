@@ -61,17 +61,17 @@ public class BookServiceImpl implements BookService {
         var genres = getGenresWithValidate(genresIds);
         var author = getAuthorWithValidate(authorId);
 
-        Optional<Book> book = bookRepository.findById(id);
-        if (book.isEmpty()) {
-            throw new EntityNotFoundException("Book with id %d not found".formatted(authorId));
-        }
+        Optional<Book> findBook = bookRepository.findById(id);
 
-        book.get().setTitle(title);
-        book.get().setAuthor(author);
-        book.get().setGenres(genres);
-        bookRepository.save(book.get());
+        Book book = findBook
+                .orElseThrow(() -> new EntityNotFoundException("Book with id %d not found".formatted(authorId)));
 
-        return book.get();
+        book.setTitle(title);
+        book.setAuthor(author);
+        book.setGenres(genres);
+        book = bookRepository.save(book);
+
+        return book;
     }
 
     @Transactional

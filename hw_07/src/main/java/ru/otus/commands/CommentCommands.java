@@ -29,7 +29,7 @@ public class CommentCommands {
 
     @ShellMethod(value = "Find comments by book id", key = "cbbid")
     public String findCommentsByBookId(long id) {
-        return commentConvert.commentsToString(commentService.findByBookIdWithBook(id));
+        return commentConvert.commentsToString(commentService.findByBookId(id));
     }
 
     @ShellMethod(value = "Insert comment to book", key = "cins")

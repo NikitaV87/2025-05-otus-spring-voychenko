@@ -1,16 +1,13 @@
 package ru.otus.services;
 
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.exceptions.EntityNotFoundException;
-import ru.otus.models.Book;
 import ru.otus.models.Comment;
 import ru.otus.repositories.BookRepository;
 import ru.otus.repositories.CommentRepository;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,29 +22,14 @@ public class CommentServiceImpl implements CommentService {
     @Transactional(readOnly = true)
     @Override
     public Optional<Comment> findById(Long id) {
-        Optional<Comment> comment = commentRepository.findById(id);
 
-        comment.ifPresent(c -> {
-            Optional<Book> book = bookRepository.findById(c.getBook().getId());
-            book.ifPresent(b -> Hibernate.initialize(b.getGenres()));
-        });
-
-        return comment;
+        return commentRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<Comment> findByBookIdWithBook(Long id) {
-        Optional<Book> book = bookRepository.findById(id);
-
-        if (book.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Hibernate.initialize(book.get().getGenres());
-        Hibernate.initialize(book.get().getComments());
-
-        return book.get().getComments();
+    public List<Comment> findByBookId(Long id) {
+        return commentRepository.findByBookId(id);
     }
 
     @Transactional
@@ -75,9 +57,6 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     @Override
     public void deleteById(Long commentId) {
-        var comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new EntityNotFoundException("Comment with id %d not found".formatted(commentId)));
-
-        commentRepository.delete(comment);
+        commentRepository.deleteById(commentId);
     }
 }

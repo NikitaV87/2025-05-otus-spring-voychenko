@@ -88,7 +88,7 @@ public class CommentServiceImpTest {
         val actualComment = commentService.findById(expectedBookId);
 
         assertThat(actualComment).isPresent();
-        assertThat(actualComment.get()).usingRecursiveComparison().comparingOnlyFields("id", "text", "book.id", "book.title", "book.author", "book.genres").isEqualTo(exceptComment);
+        assertThat(actualComment.get()).usingRecursiveComparison().comparingOnlyFields("id", "text", "book.id").isEqualTo(exceptComment);
     }
 
     @DisplayName("должен загружать комментарии по id книги")
@@ -96,9 +96,9 @@ public class CommentServiceImpTest {
     @Order(2)
     void findByBookIdTest() {
         val exceptComments = commentsByBookId.get(BOOK_ID_WITH_COMMENTS);
-        val actualComments = commentService.findByBookIdWithBook(BOOK_ID_WITH_COMMENTS);
+        val actualComments = commentService.findByBookId(BOOK_ID_WITH_COMMENTS);
 
-        assertThat(actualComments).usingRecursiveComparison().comparingOnlyFields("id", "text", "book.id", "book.title", "book.author", "genre.id", "genre.name").isEqualTo(exceptComments);
+        assertThat(actualComments).usingRecursiveComparison().comparingOnlyFields("id", "text", "book.id").isEqualTo(exceptComments);
     }
 
     @DisplayName("должен вставлять новые комментарии")

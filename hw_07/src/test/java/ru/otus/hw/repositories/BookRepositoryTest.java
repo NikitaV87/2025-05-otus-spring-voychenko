@@ -12,7 +12,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
-import ru.otus.models.Comment;
 import ru.otus.models.Genre;
 import ru.otus.repositories.BookRepository;
 
@@ -106,7 +105,6 @@ class BookRepositoryTest {
         newBook.setTitle("Title_NewBook");
         newBook.setGenres(List.of(em.find(Genre.class, dbGenreIds.get(1)),
                 em.find(Genre.class, dbGenreIds.get(5))));
-        newBook.setComments(List.of(Comment.builder().text("Comment 1").book(newBook).build()));
         val expectedBook = bookRepository.save(newBook);
 
         Optional<Book> actualBook = Optional.ofNullable(em.find(Book.class, expectedBook.getId()));
@@ -118,7 +116,6 @@ class BookRepositoryTest {
     @Test
     void shouldSaveUpdatedBook() {
         val expectedBook = em.find(Book.class, ID_BOOK_UPDATE);
-        Hibernate.initialize(expectedBook.getComments());
         em.detach(expectedBook);
 
         expectedBook.setTitle("Tittle_new");

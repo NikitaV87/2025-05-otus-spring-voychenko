@@ -27,7 +27,6 @@ public class CommentRepositoryTest {
     @Autowired
     private TestEntityManager em;
 
-    public static final Long ID_BOOK_FOR_FIND_COMMENTS = 1L;
     public static final Long ID_BOOK_FOR_SAVE_COMMENT = 3L;
 
     public static final Long ID_COMMENT_BOOK_FOR_UPDATE = 1L;
@@ -46,17 +45,6 @@ public class CommentRepositoryTest {
         Assertions.assertThat(actualCommentBook).isPresent().get()
                 .usingRecursiveComparison()
                 .isEqualTo(expectedCommentBook);
-    }
-
-    @DisplayName("должен загружать комментарий по id книги")
-    @Test
-    void findByBookIdTest() {
-        val book = em.find(Book.class, ID_BOOK_FOR_FIND_COMMENTS);
-        List<Comment> expectedComments = book.getComments();
-
-        List<Comment> actualComments = commentRepository.findByBookId(ID_BOOK_FOR_FIND_COMMENTS);
-
-        Assertions.assertThat(actualComments).usingRecursiveComparison().isEqualTo(expectedComments);
     }
 
     @DisplayName("должен сохранять комментарии")

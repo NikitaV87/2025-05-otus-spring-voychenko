@@ -8,7 +8,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
@@ -20,7 +21,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Builder;
-import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.proxy.HibernateProxy;
@@ -35,6 +35,10 @@ import java.util.Objects;
 @Builder
 @Table(name = "BOOK", indexes = @Index(columnList = "AUTHOR_ID", name = "IND_BOOK_AUTHOR_ID"))
 @Entity
+@NamedEntityGraph(name = "book-author-genres-graph", attributeNodes = {
+        @NamedAttributeNode("author"), @NamedAttributeNode("genres")})
+@NamedEntityGraph(name = "book-author-graph", attributeNodes = {
+        @NamedAttributeNode("author")})
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,11 +61,11 @@ public class Book {
     @Fetch(FetchMode.SUBSELECT)
     private List<Genre> genres;
 
-    @OneToMany(mappedBy = "book",
-            cascade = {CascadeType.REMOVE, CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true,
-            fetch = FetchType.LAZY)
-    @BatchSize(size = 10)
-    private List<Comment> comments;
+//    @OneToMany(mappedBy = "book",
+//            cascade = {CascadeType.REMOVE, CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true,
+//            fetch = FetchType.LAZY)
+//    @BatchSize(size = 10)
+//    private List<Comment> comments;
 
     @Override
     public final boolean equals(Object o) {
