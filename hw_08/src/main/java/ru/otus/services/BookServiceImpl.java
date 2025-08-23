@@ -3,6 +3,7 @@ package ru.otus.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.otus.dto.BookDto;
 import ru.otus.exceptions.EntityNotFoundException;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
@@ -10,7 +11,9 @@ import ru.otus.models.Genre;
 import ru.otus.repositories.AuthorRepository;
 import ru.otus.repositories.BookRepository;
 import ru.otus.repositories.GenreRepository;
+import ru.otus.utils.MappingBook;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,35 +28,47 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
 
-    @Transactional(readOnly = true)
-    @Override
-    public Optional<Book> findById(String id) {
+    private final MappingBook mappingBook;
 
-        return bookRepository.findById(id);
+    @Override
+    public Optional<BookDto> findById(String id) {
+        Optional<Book> book = bookRepository.findById(id);
+
+        if (book.isEmpty()) {
+            return Optional.empty();
+        }
+
+
+        return Optional.of(mappingBook.mapToBookDto(book.get()));
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public List<Book> findAll() {
+    public List<BookDto> findAll() {
+        List<BookDto> bookDTOs = new ArrayList<>();
         List<Book> books = bookRepository.findAll();
 
-        return books;
+        for (Book book : books) {
+            bookDTOs.add(mappingBook.mapToBookDto(book));
+        }
+
+        return bookDTOs;
     }
 
     @Transactional
     @Override
-    public Book insert(String title, String authorId, List<String> genresIds) {
+    public BookDto insert(String title, String authorId, List<String> genresIds) {
         var genres = getGenresWithValidate(genresIds);
         var author = getAuthorWithValidate(authorId);
 
         Book book = Book.builder().id(null).title(title).author(author).genres(genres).build();
 
-        return bookRepository.save(book);
+        Book bookSave = bookRepository.save(book);
+        return MappingBook.mapToBookDtoStatic(book);
     }
 
     @Transactional
     @Override
-    public Book update(String id, String title, String authorId, List<String> genresIds) {
+    public BookDto update(String id, String title, String authorId, List<String> genresIds) {
 
         var genres = getGenresWithValidate(genresIds);
         var author = getAuthorWithValidate(authorId);
@@ -68,7 +83,7 @@ public class BookServiceImpl implements BookService {
         book.setGenres(genres);
         book = bookRepository.save(book);
 
-        return book;
+        return MappingBook.mapToBookDtoStatic(book);
     }
 
     @Transactional

@@ -15,11 +15,13 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import ru.otus.dto.BookDto;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
 import ru.otus.models.Genre;
 import ru.otus.services.BookService;
 import ru.otus.services.BookServiceImpl;
+import ru.otus.utils.MappingBook;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,13 +35,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataMongoTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("Тест сервиса BookServiceImpl")
-@Import({BookServiceImpl.class})
+@Import({BookServiceImpl.class, MappingBook.class})
 @Transactional(propagation = Propagation.NEVER)
 public class BookServiceImplTest {
     @Autowired
     private BookService bookService;
 
-    private Map<String, Book> books;
+    private Map<String, BookDto> books;
 
     private static final Map<String, String> BOOK_ID_CONTAINS_AUTHOR_ID = Map.of("1","1", "2", "2", "3", "3");
 
@@ -86,7 +88,7 @@ public class BookServiceImplTest {
     @Test
     void findAllTest() {
         val actualBooks = bookService.findAll();
-        List<Book> expectedBooks = books.values().stream().toList();
+        List<BookDto> expectedBooks = books.values().stream().toList();
 
         assertThat(actualBooks).usingRecursiveComparison().isEqualTo(expectedBooks);
     }
@@ -96,7 +98,7 @@ public class BookServiceImplTest {
     @Test
     void insertTest() {
         val expectedBook = bookService.insert(NEW_BOOK_TITLE, NEW_BOOK_AUTHOR_ID, NEW_BOOK_GENRES_IDS);
-        Optional<Book> actualBook = bookService.findById(expectedBook.getId());
+        Optional<BookDto> actualBook = bookService.findById(expectedBook.getId());
 
         assertThat(actualBook).isPresent();
 
@@ -110,8 +112,8 @@ public class BookServiceImplTest {
     @Order(4)
     @Test
     void updateTest() {
-        Book expectedBook = bookService.update(UPDATE_BOOK_ID, UPDATE_BOOK_TITLE, UPDATE_BOOK_AUTHOR_ID, UPDATE_BOOK_GENRE_IDS);
-        Optional<Book> actualBook = bookService.findById(UPDATE_BOOK_ID);
+        BookDto expectedBook = bookService.update(UPDATE_BOOK_ID, UPDATE_BOOK_TITLE, UPDATE_BOOK_AUTHOR_ID, UPDATE_BOOK_GENRE_IDS);
+        Optional<BookDto> actualBook = bookService.findById(UPDATE_BOOK_ID);
 
         assertThat(actualBook).isPresent().get().isEqualTo(expectedBook);
         Assertions.assertEquals(actualBook.get().getTitle(), UPDATE_BOOK_TITLE);
@@ -125,7 +127,7 @@ public class BookServiceImplTest {
     @Test
     void deleteByIdTest() {
         bookService.deleteById(DELETE_BOOK_ID);
-        Optional<Book> deletedBook = bookService.findById(DELETE_BOOK_ID);
+        Optional<BookDto> deletedBook = bookService.findById(DELETE_BOOK_ID);
         assertThat(deletedBook).isEmpty();
     }
 
@@ -133,9 +135,9 @@ public class BookServiceImplTest {
         return LongStream.range(1, 4).boxed().map(Object::toString).toList();
     }
 
-    private static Map<String, Book> getBooks() {
+    private static Map<String, BookDto> getBooks() {
         List<String> bookIds =  getBookIds();
-        Map<String, Book> books = new HashMap<>();
+        Map<String, BookDto> BookDto = new HashMap<>();
 
         for (String bookId: bookIds) {
             String idAuthor =  BOOK_ID_CONTAINS_AUTHOR_ID.get(bookId);
@@ -146,9 +148,9 @@ public class BookServiceImplTest {
 
             Book book = Book.builder().id(bookId).title("BookTitle_" + bookId).author(author).genres(genres).build();
 
-            books.put(bookId, book);
+            BookDto.put(bookId, MappingBook.mapToBookDtoStatic(book));
         }
 
-        return books;
+        return BookDto;
     }
 }

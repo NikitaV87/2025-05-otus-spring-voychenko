@@ -22,6 +22,7 @@ import ru.otus.models.Genre;
 import ru.otus.services.BookServiceImpl;
 import ru.otus.services.CommentService;
 import ru.otus.services.CommentServiceImpl;
+import ru.otus.utils.MappingBook;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataMongoTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("Тест сервиса CommentServiceImpl")
-@Import({BookServiceImpl.class,
-        CommentServiceImpl.class})
+@Import({BookServiceImpl.class, CommentServiceImpl.class, MappingBook.class})
 @Transactional(propagation = Propagation.NEVER)
 public class CommentServiceImpTest {
 
