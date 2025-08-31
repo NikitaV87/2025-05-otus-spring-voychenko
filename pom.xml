@@ -72,6 +72,7 @@
                 </dependencies>
                 <configuration>
                     <configLocation>${checkstyle.config.url}</configLocation>
+                    <excludes>**/generated-sources/**/*</excludes>
                 </configuration>
                 <executions>
                     <execution>

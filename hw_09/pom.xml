@@ -139,7 +139,7 @@
                 </dependencies>
                 <configuration>
                     <configLocation>${checkstyle.config.url}</configLocation>
-                    <excludes>**/generated/**/*</excludes>
+                    <excludes>**/generated-sources/**/*</excludes>
                 </configuration>
                 <executions>
                     <execution>
