@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8"/>
+        <title>Library</title>
+        <link rel="stylesheet" href="../static/css/menu.css" th:href="@{/css/menu.css}"/>
+    </head>
+    <body>
+        <div class="widget">
+            <ul class="widget-list">
+                <h3 class="widget-title">Main</h3>
+                <li><a href="author/author.html" th:href="@{/author}">Author</a></li>
+                <li><a href="book/book.html" th:href="@{/book}">Book</a></li>
+                <li><a href="comment/book.html" th:href="@{/comment/book}">Comment</a></li>
+                <li><a href="genre/genre.html" th:href="@{/genre}">Genre</a></li>
+            </ul>
+        </div>
+    </body>
+</html>

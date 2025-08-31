@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>Comment</title>
+        <link rel="stylesheet" href="../../static/css/tables.css" th:href="@{/css/tables.css}"/>
+        <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}"/>
+        <link rel="stylesheet" href="../../static/css/form.css" th:href="@{/css/form.css}"/>
+        <link rel="stylesheet" href="../../static/css/error.css" th:href="@{/css/error.css}"/>
+    </head>
+    <body>
+        <div>
+            <form novalidate th:object="${comment}" th:action="'/comment/' + (${comment.id} == null ? 'new/book/' + ${comment.book} : ${comment.id})"
+                  method="POST">
+                <div th:if="${#fields.hasErrors('*')}">
+                    <p>Have error fields</p>
+                    <ul>
+                        <li class="alert-warning" th:each="error : ${#fields.errors('text')}" th:text="${error}"/>
+                        <li class="alert-warning" th:each="error : ${#fields.errors('book')}" th:text="${error}"/>
+                    </ul>
+                </div>
+
+                <label for="text">Text</label>
+                <p class="alert-warning" th:each="err : ${#fields.errors('text')}" th:text="${error}"/>
+                <textarea id="text" name="comment" rows="4" cols="250" placeholder="Comment text"
+                          th:value="${comment.text}" th:field="*{text}">comment text</textarea>
+                <div>
+                    <label for="book">Book:</label>
+                    <p class="alert-warning" th:each="err : ${#fields.errors('book')}" th:text="${error}"/>
+                    <select id="book" name="book" required th:field="*{book}" th:readonly="${comment.id != null}">
+                        <option th:each="book : ${books}"
+                                th:value="${book.id}"
+                                th:text="${book.title}"
+                                th:readonly="${comment.id != null}">Book_1</option>
+                    </select>
+                </div>
+
+                <button type="submit">Save</button>
+                <button type="button"
+                        th:onclick="'cancelBook(' + ${comment.book} + ');'">
+                    Cancel</button>
+            </form>
+        </div>
+        <script>
+            function cancelBook(id) {
+                window.location.href = "/comment/book/" + id;
+            }
+        </script>
+    </body>
+</html>

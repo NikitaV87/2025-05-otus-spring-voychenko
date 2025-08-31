@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="UTF-8">
+        <title>Author</title>
+        <link rel="stylesheet" href="../../static/css/tables.css" th:href="@{/css/tables.css}"/>
+        <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}"/>
+    </head>
+    <body>
+        <div class="widget">
+            <h3 class="widget-title">Authors</h3>
+            <ul class="widget-list">
+                <li><a href="../index.html" th:href="@{/}">Back</a></li>
+            </ul>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>fullName</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="author : ${authors}">
+                    <td th:text="${author.fullName}">Mikhail Lermontov</td>
+                </tr>
+                <tr th:remove="all">
+                    <td>2</td>
+                    <td>Alexander Pushkin</td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+</html>
