@@ -139,6 +139,9 @@
                 </dependencies>
                 <configuration>
                     <configLocation>${checkstyle.config.url}</configLocation>
+                    <sourceDirectories>
+                        <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                    </sourceDirectories>
                     <excludes>**/generated-sources/**/*</excludes>
                 </configuration>
                 <executions>
