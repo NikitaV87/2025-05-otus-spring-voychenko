@@ -9,15 +9,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.otus.controller.CommentController;
 import ru.otus.dto.AuthorDto;
 import ru.otus.dto.BookDto;
+import ru.otus.dto.CommentCreateDto;
 import ru.otus.dto.CommentDto;
+import ru.otus.dto.CommentUpdateDto;
 import ru.otus.dto.GenreDto;
-import ru.otus.dto.response.ResponseCreateOrUpdateComment;
-import ru.otus.mapper.response.ResponseCreateOrUpdateCommentMapper;
 import ru.otus.services.BookService;
 import ru.otus.services.CommentService;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -87,43 +86,46 @@ public class CommentControllerTest {
     @DisplayName("Тест показа формы для обновления комментария")
     @Test
     void getUpdateCommentTest() throws Exception {
-        when(commentService.findById(COMMENT_ID)).thenReturn(Optional.of(COMMENTS.get(COMMENT_INDEX_IN_LIST)));
+        when(commentService.findById(COMMENT_ID)).thenReturn(COMMENTS.get(COMMENT_INDEX_IN_LIST));
 
 
         mockMvc.perform(get("/comment/%d".formatted(COMMENT_ID)))
                 .andExpect(status().isOk())
-                .andExpect(view().name("comment/form"))
-                .andExpect(model().attribute("comment", ResponseCreateOrUpdateCommentMapper.toResponse(COMMENTS.get(COMMENT_INDEX_IN_LIST))))
-                .andExpect(model().attribute("books",  List.of(COMMENTS.get(COMMENT_INDEX_IN_LIST).getBook())));
+                .andExpect(view().name("comment/formUpd"))
+                .andExpect(model().attribute("comment", CommentUpdateDto.builder()
+                        .bookId(COMMENTS.get(COMMENT_INDEX_IN_LIST).getBook().getId())
+                        .id(COMMENTS.get(COMMENT_INDEX_IN_LIST).getId())
+                        .text(COMMENTS.get(COMMENT_INDEX_IN_LIST).getText()).build()))
+                .andExpect(model().attribute("books",  List.of(BOOKS.get(0))));
     }
 
     @DisplayName("Тест обновления комментария")
     @Test
     void postUpdateCommentTest() throws Exception {
-        when(commentService.findById(COMMENT_ID)).thenReturn(Optional.of(COMMENTS.get(COMMENT_INDEX_IN_LIST)));
+        when(commentService.findById(COMMENT_ID)).thenReturn(COMMENTS.get(COMMENT_INDEX_IN_LIST));
 
         mockMvc.perform(post("/comment/%d".formatted(COMMENT_ID))
                         .param("id", String.valueOf(COMMENT_ID))
                         .param("text", COMMENT_TEXT)
-                        .param("book", String.valueOf(BOOK_ID)))
+                        .param("bookId", String.valueOf(BOOK_ID)))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/comment/book/%d".formatted(BOOK_ID)))
                 .andExpect(model().hasNoErrors());
 
-        verify(commentService).update(COMMENT_ID, COMMENT_TEXT);
+        verify(commentService).update(new CommentUpdateDto(COMMENT_ID, COMMENT_TEXT, BOOK_ID));
     }
 
     @Test
     @DisplayName("Тест показа формы для создания комментария")
     void getNewCommentTest() throws Exception {
-        when(bookService.findById(BOOK_ID)).thenReturn(Optional.of(BOOKS.get(BOOK_INDEX_IN_LIST)));
+        when(bookService.findById(BOOK_ID)).thenReturn(BOOKS.get(BOOK_INDEX_IN_LIST));
 
         mockMvc.perform(get("/comment/new/book/%d".formatted(COMMENT_ID))
                         .param("books", String.valueOf(BOOK_ID)))
                 .andExpect(status().isOk())
-                .andExpect(view().name("comment/form"))
+                .andExpect(view().name("comment/formCreate"))
                 .andExpect(model().attribute("comment",
-                        ResponseCreateOrUpdateComment.builder().book(BOOK_ID).build()))
+                        CommentCreateDto.builder().bookId(BOOKS.get(0).getId()).build()))
                 .andExpect(model().attribute("books", List.of(BOOKS.get(BOOK_INDEX_IN_LIST))))
                 .andExpect(model().hasNoErrors());
     }
@@ -131,23 +133,23 @@ public class CommentControllerTest {
     @Test
     @DisplayName("Тест создания комментария")
     void postNewCommentTest() throws Exception {
-        when(bookService.findById(BOOK_ID)).thenReturn(Optional.of(BOOKS.get(BOOK_INDEX_IN_LIST)));
+        when(bookService.findById(BOOK_ID)).thenReturn(BOOKS.get(BOOK_INDEX_IN_LIST));
 
         mockMvc.perform(post("/comment/new/book/%d".formatted(BOOK_ID))
                         .param("id", String.valueOf(COMMENT_ID))
                         .param("text", COMMENT_TEXT)
-                        .param("book", String.valueOf(BOOK_ID)))
+                        .param("bookId", String.valueOf(BOOK_ID)))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/comment/book/%d".formatted(BOOK_ID)))
                 .andExpect(model().hasNoErrors());
 
-        verify(commentService).insert(COMMENT_TEXT, BOOK_ID);
+        verify(commentService).insert(new CommentCreateDto(COMMENT_TEXT, BOOK_ID));
     }
 
     @Test
     @DisplayName("Тест удаления комментария")
     void deleteCommentByIdTest() throws Exception {
-        when(commentService.findById(COMMENT_ID)).thenReturn(Optional.of(COMMENTS.get(COMMENT_INDEX_IN_LIST)));
+        when(commentService.findById(COMMENT_ID)).thenReturn(COMMENTS.get(COMMENT_INDEX_IN_LIST));
 
         mockMvc.perform(post("/comment/%d/delete".formatted(COMMENT_ID)))
                 .andExpect(status().is3xxRedirection())

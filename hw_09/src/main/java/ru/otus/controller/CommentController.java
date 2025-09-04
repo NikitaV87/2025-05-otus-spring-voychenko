@@ -10,15 +10,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import ru.otus.dto.BookDto;
+import ru.otus.dto.CommentCreateDto;
 import ru.otus.dto.CommentDto;
-import ru.otus.dto.request.RequestCreateOrUpdateComment;
-import ru.otus.dto.response.ResponseCreateOrUpdateComment;
-import ru.otus.mapper.response.ResponseCreateOrUpdateCommentMapper;
+import ru.otus.dto.CommentUpdateDto;
+import ru.otus.exceptions.EntityNotFoundException;
 import ru.otus.services.BookService;
 import ru.otus.services.CommentService;
 
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
@@ -45,83 +44,85 @@ public class CommentController {
 
     @GetMapping("/comment/{id}")
     public String getUpdateComment(@PathVariable Long id, Model model) {
-        Optional<CommentDto> comment = commentService.findById(id);
+        CommentDto comment = commentService.findById(id);
 
-        if (comment.isEmpty()) {
-            model.addAttribute("message", "comment not find!");
-            return "error/message";
+        if (comment == null) {
+            throw new EntityNotFoundException("Comment not found");
         }
 
-        model.addAttribute("comment", ResponseCreateOrUpdateCommentMapper.toResponse(comment.get()));
-        model.addAttribute("books", List.of(comment.get().getBook()));
+        model.addAttribute("comment", CommentUpdateDto.builder()
+                .bookId(comment.getBook().getId())
+                .id(comment.getId())
+                .text(comment.getText()).build());
+        model.addAttribute("books", List.of(comment.getBook()));
 
-        return "comment/form";
+        return "comment/formUpd";
     }
 
     @PostMapping("/comment/{id}")
-    public String postUpdateComment(@PathVariable Long id,
-                                 @Valid @ModelAttribute("comment") RequestCreateOrUpdateComment request,
+    public String postUpdateComment(@Valid @ModelAttribute("comment") CommentUpdateDto commentUpdateDto,
                                  BindingResult bindingResult,
                                  Model model) {
-        Optional<CommentDto> comment = commentService.findById(id);
+        CommentDto comment = commentService.findById(commentUpdateDto.getId());
 
-        if (comment.isEmpty()) {
-            model.addAttribute("message", "comment not find!");
-            return "error/message";
+        if (comment == null) {
+            throw new EntityNotFoundException("Comment not found");
         }
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("books", List.of(comment.get().getBook()));
-            return "comment/form";
+            model.addAttribute("books", List.of(comment.getBook()));
+            return "comment/formUpd";
         }
 
-        commentService.update(id, request.getText());
+        commentService.update(commentUpdateDto);
 
-        return "redirect:/comment/book/%d".formatted(request.getBook());
+        return "redirect:/comment/book/%d".formatted(commentUpdateDto.getBookId());
     }
 
     @GetMapping("/comment/new/book/{bookId}")
     public String getNewComment(@PathVariable Long bookId, Model model) {
 
-        Optional<BookDto> book = bookService.findById(bookId);
+        BookDto book = bookService.findById(bookId);
 
-        if (book.isEmpty()) {
-            model.addAttribute("message", "Book not find!");
-            return "error/message";
+        if (book == null) {
+            throw new EntityNotFoundException("Book not find!");
         }
 
-        model.addAttribute("comment", ResponseCreateOrUpdateComment.builder().book(bookId).build());
-        model.addAttribute("books", List.of(book.get()));
+        model.addAttribute("comment", CommentCreateDto.builder().bookId(book.getId()).build());
+        model.addAttribute("books", List.of(book));
 
-        return "comment/form";
+        return "comment/formCreate";
     }
 
     @PostMapping("/comment/new/book/{bookId}")
-    public String postNewComment(@PathVariable Long bookId,
-                                 @Valid @ModelAttribute("comment") RequestCreateOrUpdateComment request,
+    public String postNewComment(@Valid @ModelAttribute("comment") CommentCreateDto commentCreateDto,
                                  BindingResult bindingResult,
                                  Model model) {
-        Optional<BookDto> book = bookService.findById(bookId);
+        BookDto book = bookService.findById(commentCreateDto.getBookId());
 
-        if (book.isEmpty()) {
-            model.addAttribute("message", "book not find!");
-            return "error/message";
+        if (book == null) {
+            throw new EntityNotFoundException("Book not find!");
         }
 
-        commentService.insert(request.getText(), request.getBook());
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("books", List.of(book));
+            return "comment/formCreate";
+        }
 
-        return "redirect:/comment/book/%d".formatted(request.getBook());
+        commentService.insert(commentCreateDto);
+
+        return "redirect:/comment/book/%d".formatted(commentCreateDto.getBookId());
     }
 
     @PostMapping("comment/{id}/delete")
     public String deleteCommentById(@PathVariable Long id) {
-        Optional<CommentDto> comment = commentService.findById(id);
+        CommentDto comment = commentService.findById(id);
 
-        if (comment.isEmpty()) {
+        if (comment == null) {
             return "redirect:/comment/book";
         }
 
-        Long bookId = comment.get().getBook().getId();
+        Long bookId = comment.getBook().getId();
         commentService.deleteById(id);
 
         return "redirect:/comment/book/%d".formatted(bookId);

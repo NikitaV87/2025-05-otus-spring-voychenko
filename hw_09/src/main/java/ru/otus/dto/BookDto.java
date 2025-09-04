@@ -1,7 +1,5 @@
 package ru.otus.dto;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,13 +15,10 @@ import java.util.List;
 public class BookDto {
     private Long id;
 
-    @NotBlank(message = "Must specify the title of the book")
     private String title;
 
-    @Valid
     private AuthorDto author;
 
-    @Valid
     private List<GenreDto> genres = new ArrayList<>();
 
     public String getGenresString() {

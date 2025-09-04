@@ -14,14 +14,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.dto.AuthorDto;
+import ru.otus.dto.BookCreateDto;
 import ru.otus.dto.BookDto;
+import ru.otus.dto.BookUpdateDto;
 import ru.otus.dto.GenreDto;
 import ru.otus.services.BookService;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -71,10 +72,9 @@ public class BookServiceImplTest {
     @MethodSource("getBookIds")
     void findByIdTest(Long expectedBookId) {
         BookDto exceptBook = books.get(expectedBookId);
-        Optional<BookDto> actualBook = bookService.findById(expectedBookId);
+        BookDto actualBook = bookService.findById(expectedBookId);
 
-        assertThat(actualBook).isPresent();
-        assertThat(actualBook.get()).usingRecursiveComparison().ignoringFields("comments").isEqualTo(exceptBook);
+        assertThat(actualBook).usingRecursiveComparison().ignoringFields("comments").isEqualTo(exceptBook);
     }
 
     @DisplayName("должен загружать список всех книг")
@@ -91,14 +91,13 @@ public class BookServiceImplTest {
     @Order(3)
     @Test
     void insertTest() {
-        BookDto expectedBook = bookService.insert(NEW_BOOK_TITLE, NEW_BOOK_AUTHOR_ID, NEW_BOOK_GENRES_IDS);
-        Optional<BookDto> actualBook = bookService.findById(expectedBook.getId());
+        BookDto expectedBook = bookService.insert(new BookCreateDto(NEW_BOOK_TITLE, NEW_BOOK_AUTHOR_ID,
+                NEW_BOOK_GENRES_IDS));
+        BookDto actualBook = bookService.findById(expectedBook.getId());
 
-        assertThat(actualBook).isPresent();
-
-        Assertions.assertEquals(actualBook.get().getTitle(), NEW_BOOK_TITLE);
-        Assertions.assertEquals(actualBook.get().getAuthor().getId(), NEW_BOOK_AUTHOR_ID);
-        assertThat(actualBook.get().getGenres().stream().map(GenreDto::getId).toList())
+        Assertions.assertEquals(actualBook.getTitle(), NEW_BOOK_TITLE);
+        Assertions.assertEquals(actualBook.getAuthor().getId(), NEW_BOOK_AUTHOR_ID);
+        assertThat(actualBook.getGenres().stream().map(GenreDto::getId).toList())
                 .containsExactlyInAnyOrderElementsOf(NEW_BOOK_GENRES_IDS);
     }
 
@@ -106,13 +105,14 @@ public class BookServiceImplTest {
     @Order(4)
     @Test
     void updateTest() {
-        BookDto expectedBook = bookService.update(UPDATE_BOOK_ID, UPDATE_BOOK_TITLE, UPDATE_BOOK_AUTHOR_ID, UPDATE_BOOK_GENRE_IDS);
-        Optional<BookDto> actualBook = bookService.findById(UPDATE_BOOK_ID);
+        BookDto expectedBook = bookService.update(new BookUpdateDto(UPDATE_BOOK_ID, UPDATE_BOOK_TITLE,
+                UPDATE_BOOK_AUTHOR_ID, UPDATE_BOOK_GENRE_IDS));
+        BookDto actualBook = bookService.findById(UPDATE_BOOK_ID);
 
-        assertThat(actualBook).isPresent().get().isEqualTo(expectedBook);
-        Assertions.assertEquals(actualBook.get().getTitle(), UPDATE_BOOK_TITLE);
-        Assertions.assertEquals(actualBook.get().getAuthor().getId(), UPDATE_BOOK_AUTHOR_ID);
-        assertThat(actualBook.get().getGenres().stream().map(GenreDto::getId).collect(Collectors.toSet()))
+        assertThat(actualBook).isEqualTo(expectedBook);
+        Assertions.assertEquals(actualBook.getTitle(), UPDATE_BOOK_TITLE);
+        Assertions.assertEquals(actualBook.getAuthor().getId(), UPDATE_BOOK_AUTHOR_ID);
+        assertThat(actualBook.getGenres().stream().map(GenreDto::getId).collect(Collectors.toSet()))
                 .containsExactlyInAnyOrderElementsOf(UPDATE_BOOK_GENRE_IDS);
     }
 
@@ -121,8 +121,8 @@ public class BookServiceImplTest {
     @Test
     void deleteByIdTest() {
         bookService.deleteById(DELETE_BOOK_ID);
-        Optional<BookDto> deletedBook = bookService.findById(DELETE_BOOK_ID);
-        assertThat(deletedBook).isEmpty();
+        BookDto deletedBook = bookService.findById(DELETE_BOOK_ID);
+        assertThat(deletedBook).isNull();
     }
 
     private static List<Long> getBookIds() {

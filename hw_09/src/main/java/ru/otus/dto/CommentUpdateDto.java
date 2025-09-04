@@ -1,4 +1,4 @@
-package ru.otus.dto.request;
+package ru.otus.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,12 +11,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RequestCreateOrUpdateComment {
+public class CommentUpdateDto {
+    @NotNull(message = "Comment is not exists")
     private Long id;
 
-    @NotBlank(message = "Must fill text of comment")
+    @NotBlank(message = "It is necessary to fill in the text of the comment")
     private String text;
 
-    @NotNull(message = "Must select book for comment")
-    private Long book;
+    @NotNull(message = "You need to choose a book")
+    private Long bookId;
 }

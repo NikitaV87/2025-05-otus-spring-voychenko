@@ -15,14 +15,15 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.dto.AuthorDto;
 import ru.otus.dto.BookDto;
+import ru.otus.dto.CommentCreateDto;
 import ru.otus.dto.CommentDto;
+import ru.otus.dto.CommentUpdateDto;
 import ru.otus.dto.GenreDto;
 import ru.otus.services.CommentService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
@@ -79,10 +80,9 @@ public class CommentServiceImpTest {
     @MethodSource("getCommentIds")
     void findByIdTest(Long expectedBookId) {
         CommentDto exceptComment = commentsById.get(expectedBookId);
-        Optional<CommentDto> actualComment = commentService.findById(expectedBookId);
+        CommentDto actualComment = commentService.findById(expectedBookId);
 
-        assertThat(actualComment).isPresent();
-        assertThat(actualComment.get()).usingRecursiveComparison().comparingOnlyFields("id", "text", "book.id").isEqualTo(exceptComment);
+        assertThat(actualComment).usingRecursiveComparison().comparingOnlyFields("id", "text", "book.id").isEqualTo(exceptComment);
     }
 
     @DisplayName("должен загружать комментарии по id книги")
@@ -99,25 +99,24 @@ public class CommentServiceImpTest {
     @Test
     @Order(3)
     void insertTest() {
-        CommentDto comment = commentService.insert(FOR_NEW_COMMENT_TEXT, FOR_NEW_COMMENT_BOOK_ID);
+        CommentDto comment = commentService.insert(new CommentCreateDto(FOR_NEW_COMMENT_TEXT, FOR_NEW_COMMENT_BOOK_ID));
         Assertions.assertNotNull(comment.getId());
-        Optional<CommentDto> savedComment = commentService.findById(comment.getId());
+        CommentDto savedComment = commentService.findById(comment.getId());
 
-        assertThat(savedComment).isPresent();
-        Assertions.assertEquals(savedComment.get().getText(), FOR_NEW_COMMENT_TEXT);
-        Assertions.assertEquals(savedComment.get().getBook().getId(), FOR_NEW_COMMENT_BOOK_ID);
+        Assertions.assertEquals(savedComment.getText(), FOR_NEW_COMMENT_TEXT);
+        Assertions.assertEquals(savedComment.getBook().getId(), FOR_NEW_COMMENT_BOOK_ID);
     }
 
     @DisplayName("должен обновлять комментарии")
     @Test
     @Order(4)
     void updateTest() {
-        CommentDto comment = commentService.update(FOR_UPD_COMMENT_ID, FOR_UPD_COMMENT_TEXT);
-        Optional<CommentDto> updatedComment = commentService.findById(FOR_UPD_COMMENT_ID);
+        CommentDto comment = commentService.update(new CommentUpdateDto(FOR_UPD_COMMENT_ID, FOR_UPD_COMMENT_TEXT,
+                BOOK_ID_WITH_COMMENTS));
+        CommentDto updatedComment = commentService.findById(FOR_UPD_COMMENT_ID);
 
-        assertThat(updatedComment).isPresent();
-        Assertions.assertEquals(updatedComment.get().getText(), FOR_UPD_COMMENT_TEXT);
-        Assertions.assertEquals(updatedComment.get().getBook().getId(), comment.getBook().getId());
+        Assertions.assertEquals(updatedComment.getText(), FOR_UPD_COMMENT_TEXT);
+        Assertions.assertEquals(updatedComment.getBook().getId(), comment.getBook().getId());
     }
 
     @DisplayName("должен удалять комментарии по ID")
@@ -125,9 +124,9 @@ public class CommentServiceImpTest {
     @Order(4)
     void deleteTest() {
         commentService.deleteById(FOR_DEL_COMMENT_ID);
-        Optional<CommentDto> deletedComment = commentService.findById(FOR_DEL_COMMENT_ID);
+        CommentDto deletedComment = commentService.findById(FOR_DEL_COMMENT_ID);
 
-        assertThat(deletedComment).isEmpty();
+        assertThat(deletedComment).isNull();
     }
 
     private static Map<Long, CommentDto> getComments() {

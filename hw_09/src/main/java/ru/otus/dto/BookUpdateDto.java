@@ -1,4 +1,4 @@
-package ru.otus.dto.request;
+package ru.otus.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -15,15 +15,18 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RequestCreateAndUpdateBook {
+public class BookUpdateDto {
+
+    @NotNull(message = "Book is not exists")
     private Long id;
 
     @NotBlank(message = "Must fill name of book")
     private String title;
 
     @NotNull(message = "Must select author of book")
-    private Long author;
+    private Long authorId;
 
     @NotEmpty(message = "Must choice genre of book")
-    private List<Long> genres = new ArrayList<>();
+    @NotNull(message = "Genre not init, please try again")
+    private List<Long> genreIds = new ArrayList<>();
 }

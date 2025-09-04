@@ -1,10 +1,11 @@
 package ru.otus.services;
 
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.otus.dto.BookCreateDto;
 import ru.otus.dto.BookDto;
+import ru.otus.dto.BookUpdateDto;
 import ru.otus.exceptions.EntityNotFoundException;
 import ru.otus.mapper.BookMapper;
 import ru.otus.models.Author;
@@ -32,14 +33,14 @@ public class BookServiceImpl implements BookService {
 
     @Transactional(readOnly = true)
     @Override
-    public Optional<BookDto> findById(long id) {
+    public BookDto findById(long id) {
         Optional<Book> book = bookRepository.findById(id);
 
         if (book.isEmpty()) {
-            return Optional.empty();
+            return null;
         }
 
-        return Optional.of(bookMapper.toDto(book.get()));
+        return bookMapper.toDto(book.get());
     }
 
     @Transactional(readOnly = true)
@@ -47,35 +48,33 @@ public class BookServiceImpl implements BookService {
     public List<BookDto> findAll() {
         List<Book> books = bookRepository.findAll();
 
-        books.forEach(b -> Hibernate.initialize(b.getGenres()));
-
         return bookMapper.toDto(books);
     }
 
     @Transactional
     @Override
-    public BookDto insert(String title, long authorId, List<Long> genresIds) {
-        var genres = getGenresWithValidate(genresIds);
-        var author = getAuthorWithValidate(authorId);
+    public BookDto insert(BookCreateDto bookCreateDto) {
+        var genres = getGenresWithValidate(bookCreateDto.getGenreIds());
+        var author = getAuthorWithValidate(bookCreateDto.getAuthorId());
 
-        Book book = Book.builder().id(null).title(title).author(author).genres(genres).build();
+        Book book = Book.builder().id(null).title(bookCreateDto.getTitle()).author(author).genres(genres).build();
 
         return bookMapper.toDto(bookRepository.save(book));
     }
 
     @Transactional
     @Override
-    public BookDto update(Long id, String title, long authorId, List<Long> genresIds) {
+    public BookDto update(BookUpdateDto bookUpdateDto) {
 
-        var genres = getGenresWithValidate(genresIds);
-        var author = getAuthorWithValidate(authorId);
+        var genres = getGenresWithValidate(bookUpdateDto.getGenreIds());
+        var author = getAuthorWithValidate(bookUpdateDto.getAuthorId());
 
-        Optional<Book> findBook = bookRepository.findById(id);
+        Optional<Book> findBook = bookRepository.findById(bookUpdateDto.getId());
 
         Book book = findBook
-                .orElseThrow(() -> new EntityNotFoundException("Book with id %d not found".formatted(authorId)));
+                .orElseThrow(() -> new EntityNotFoundException("Book with id %d not found".formatted(author.getId())));
 
-        book.setTitle(title);
+        book.setTitle(bookUpdateDto.getTitle());
         book.setAuthor(author);
         book.setGenres(genres);
         book = bookRepository.save(book);

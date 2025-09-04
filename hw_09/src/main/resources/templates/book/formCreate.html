@@ -10,14 +10,13 @@
     </head>
     <body>
         <div>
-            <form novalidate th:object="${book}" th:action="'/book/' + (${book.id} == null ? 'new' : ${book.id})"
-                  method="POST">
+            <form novalidate th:object="${book}" th:action="'/book/new'" method="POST">
                 <div th:if="${#fields.hasErrors('*')}">
                     <p>Have error fields</p>
                     <ul>
                         <li class="alert-warning" th:each="error : ${#fields.errors('title')}" th:text="${error}"/>
-                        <li class="alert-warning" th:each="error : ${#fields.errors('author')}" th:text="${error}"/>
-                        <li class="alert-warning" th:each="error : ${#fields.errors('genres')}" th:text="${error}"/>
+                        <li class="alert-warning" th:each="error : ${#fields.errors('authorId')}" th:text="${error}"/>
+                        <li class="alert-warning" th:each="error : ${#fields.errors('genreIds')}" th:text="${error}"/>
                     </ul>
                 </div>
 
@@ -27,8 +26,8 @@
 
                 <div>
                     <label for="author">Author:</label>
-                    <p class="alert-warning" th:each="err : ${#fields.errors('author')}" th:text="${error}"/>
-                    <select id="author" name="author" required th:field="*{author}">
+                    <p class="alert-warning" th:each="err : ${#fields.errors('authorId')}" th:text="${error}"/>
+                    <select id="author" name="author" required th:field="*{authorId}">
                         <option th:each="author : ${authors}"
                                 th:value="${author.id}"
                                 th:text="${author.fullName}">Lermontov</option>
@@ -37,9 +36,9 @@
 
                 <div class="form-group">
                     <label for="genre">Genre</label>
-                    <p class="alert-warning" th:each="err : ${#fields.errors('genres')}" th:text="${error}"/>
+                    <p class="alert-warning" th:each="err : ${#fields.errors('genreIds')}" th:text="${error}"/>
                     <div id="genre" th:each="genre: ${genres}">
-                        <input type="checkbox" th:field="*{genres}"
+                        <input type="checkbox" th:field="*{genreIds}"
                                th:value="${genre.id}" text="novel" th:text="${genre.name}"
                                th:id="'genre_' + ${genre.id}"/>
                     </div>
