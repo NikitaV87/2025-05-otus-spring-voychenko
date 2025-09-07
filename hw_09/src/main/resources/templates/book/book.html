@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="UTF-8">
+        <title>Book</title>
+        <link rel="stylesheet" href="../../static/css/tables.css" th:href="@{/css/tables.css}"/>
+        <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}"/>
+    </head>
+    <body>
+        <div class="widget">
+            <h3 class="widget-title">Book</h3>
+            <ul class="widget-list">
+                <li><a href="/form.html" th:href="@{/book/new}">New book</a></li>
+                <li><a href="../index.html" th:href="@{/}">Back</a></li>
+            </ul>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>title</th>
+                    <th>author</th>
+                    <th>genres</th>
+                    <th>action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="book : ${books}">
+                    <td th:text="${book.title}">Book_1</td>
+                    <td th:text="${book.author.fullName}">Author_1</td>
+                    <td th:text="${book.getGenresString()}">Genre_1</td>
+                    <td>
+                        <a href="#" th:href="@{/book/{id}(id=${book.id})}" >Edit</a>
+                        <form th:id="'form_' + ${book.id}" th:action="'/book/' + ${book.id} + '/delete'" method="POST">
+                            <a href="#" th:onclick="'document.getElementById(\'form_' + ${book.id} +'\').submit();'">Delete</a>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+</html>

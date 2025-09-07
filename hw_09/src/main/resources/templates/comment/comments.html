@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Comment by book</title>
+    <link rel="stylesheet" href="../../static/css/tables.css" th:href="@{/css/tables.css}"/>
+    <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}"/>
+</head>
+<body>
+<div class="widget">
+    <h3 class="widget-title">Comment</h3>
+    <ul class="widget-list">
+        <li><a href="#" th:href="@{/comment/new/book/{id}(id=${bookId})}">New comment</a></li>
+        <li><a href="/book.html" th:href="@{/comment/book}">Back</a></li>
+    </ul>
+</div>
+<table>
+    <thead>
+    <tr>
+        <th>Comment</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="comment : ${comments}">
+        <td th:text="${comment.text}">Book_1</td>
+        <td>
+            <a href="#" th:href="@{/comment/{id}(id=${comment.id})}" >Edit</a><br>
+            <form th:id="'form_' + ${comment.id}" th:action="'/comment/' + ${comment.id} + '/delete'" method="POST">
+                <a href="#" th:onclick="'document.getElementById(\'form_' + ${comment.id} +'\').submit();'">Delete</a>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
