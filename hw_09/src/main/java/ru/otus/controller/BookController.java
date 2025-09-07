@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import ru.otus.dto.BookCreateDto;
 import ru.otus.dto.BookDto;
 import ru.otus.dto.BookUpdateDto;
-import ru.otus.exceptions.EntityNotFoundException;
 import ru.otus.services.AuthorService;
 import ru.otus.services.BookService;
 import ru.otus.services.GenreService;
@@ -44,10 +43,6 @@ public class BookController {
     @GetMapping("book/{id}")
     public String getUpdateBook(@PathVariable Long id, Model model) {
         BookDto book = bookService.findById(id);
-
-        if (book == null) {
-            throw new EntityNotFoundException("Book not find!");
-        }
 
         model.addAttribute("book", BookUpdateDto.builder()
                 .id(book.getId())

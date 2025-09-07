@@ -13,7 +13,6 @@ import ru.otus.dto.BookDto;
 import ru.otus.dto.CommentCreateDto;
 import ru.otus.dto.CommentDto;
 import ru.otus.dto.CommentUpdateDto;
-import ru.otus.exceptions.EntityNotFoundException;
 import ru.otus.services.BookService;
 import ru.otus.services.CommentService;
 
@@ -46,10 +45,6 @@ public class CommentController {
     public String getUpdateComment(@PathVariable Long id, Model model) {
         CommentDto comment = commentService.findById(id);
 
-        if (comment == null) {
-            throw new EntityNotFoundException("Comment not found");
-        }
-
         model.addAttribute("comment", CommentUpdateDto.builder()
                 .bookId(comment.getBook().getId())
                 .id(comment.getId())
@@ -64,10 +59,6 @@ public class CommentController {
                                  BindingResult bindingResult,
                                  Model model) {
         CommentDto comment = commentService.findById(commentUpdateDto.getId());
-
-        if (comment == null) {
-            throw new EntityNotFoundException("Comment not found");
-        }
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("books", List.of(comment.getBook()));
@@ -84,10 +75,6 @@ public class CommentController {
 
         BookDto book = bookService.findById(bookId);
 
-        if (book == null) {
-            throw new EntityNotFoundException("Book not find!");
-        }
-
         model.addAttribute("comment", CommentCreateDto.builder().bookId(book.getId()).build());
         model.addAttribute("books", List.of(book));
 
@@ -99,10 +86,6 @@ public class CommentController {
                                  BindingResult bindingResult,
                                  Model model) {
         BookDto book = bookService.findById(commentCreateDto.getBookId());
-
-        if (book == null) {
-            throw new EntityNotFoundException("Book not find!");
-        }
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("books", List.of(book));

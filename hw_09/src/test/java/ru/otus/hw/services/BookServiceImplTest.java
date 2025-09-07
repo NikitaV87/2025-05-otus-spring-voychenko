@@ -18,6 +18,7 @@ import ru.otus.dto.BookCreateDto;
 import ru.otus.dto.BookDto;
 import ru.otus.dto.BookUpdateDto;
 import ru.otus.dto.GenreDto;
+import ru.otus.exceptions.EntityNotFoundException;
 import ru.otus.services.BookService;
 
 import java.util.HashMap;
@@ -121,8 +122,7 @@ public class BookServiceImplTest {
     @Test
     void deleteByIdTest() {
         bookService.deleteById(DELETE_BOOK_ID);
-        BookDto deletedBook = bookService.findById(DELETE_BOOK_ID);
-        assertThat(deletedBook).isNull();
+        Assertions.assertThrows(EntityNotFoundException.class, () -> bookService.findById(DELETE_BOOK_ID));
     }
 
     private static List<Long> getBookIds() {

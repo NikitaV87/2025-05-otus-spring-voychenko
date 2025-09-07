@@ -1,6 +1,5 @@
 package ru.otus.hw.conroller;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -8,15 +7,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.otus.controller.BookController;
 import ru.otus.controller.CommentController;
-import ru.otus.dto.AuthorDto;
-import ru.otus.dto.GenreDto;
 import ru.otus.exceptions.EntityNotFoundException;
 import ru.otus.services.AuthorService;
 import ru.otus.services.BookService;
 import ru.otus.services.CommentService;
 import ru.otus.services.GenreService;
-
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -42,15 +37,9 @@ public class ExceptionAdviceControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @BeforeEach
-    public void init() {
-        when(authorService.findAll()).thenReturn(List.of(AuthorDto.builder().id(1L).fullName("Author_1").build()));
-        when(genreService.findAll()).thenReturn(List.of(GenreDto.builder().id(1L).name("Genre_1").build()));
-    }
-
     @Test
     public void getNotHaveBook404() throws Exception {
-        when(bookService.findById(1)).thenReturn(null);
+        when(bookService.findById(1)).thenThrow(EntityNotFoundException.class);
 
         mockMvc.perform(get("/book/1"))
                 .andExpect(status().is4xxClientError())
@@ -71,7 +60,7 @@ public class ExceptionAdviceControllerTest {
 
     @Test
     public void getNotHaveComment404() throws Exception {
-        when(commentService.findById(1L)).thenReturn(null);
+        when(commentService.findById(1L)).thenThrow(EntityNotFoundException.class);
 
         mockMvc.perform(get("/comment/1"))
                 .andExpect(status().is4xxClientError())
@@ -80,7 +69,7 @@ public class ExceptionAdviceControllerTest {
 
     @Test
     public void postNotHaveComment404() throws Exception {
-        when(commentService.findById(1L)).thenReturn(null);
+        when(commentService.findById(1L)).thenThrow(EntityNotFoundException.class);
 
         mockMvc.perform(post("/comment/1")
                         .param("id", "1")

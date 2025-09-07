@@ -30,11 +30,7 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto findById(Long id) {
         Optional<Comment> comment = commentRepository.findById(id);
 
-        if (comment.isEmpty()) {
-            return null;
-        }
-
-        return commentMapper.toDto(comment.get());
+        return commentMapper.toDto(comment.orElseThrow(() -> new EntityNotFoundException("Comment not found!")));
     }
 
     @Transactional(readOnly = true)

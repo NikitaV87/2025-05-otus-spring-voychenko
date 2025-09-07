@@ -36,11 +36,8 @@ public class BookServiceImpl implements BookService {
     public BookDto findById(long id) {
         Optional<Book> book = bookRepository.findById(id);
 
-        if (book.isEmpty()) {
-            return null;
-        }
 
-        return bookMapper.toDto(book.get());
+        return bookMapper.toDto(book.orElseThrow(() -> new EntityNotFoundException("Book not find!")));
     }
 
     @Transactional(readOnly = true)

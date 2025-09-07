@@ -19,6 +19,7 @@ import ru.otus.dto.CommentCreateDto;
 import ru.otus.dto.CommentDto;
 import ru.otus.dto.CommentUpdateDto;
 import ru.otus.dto.GenreDto;
+import ru.otus.exceptions.EntityNotFoundException;
 import ru.otus.services.CommentService;
 
 import java.util.ArrayList;
@@ -124,9 +125,7 @@ public class CommentServiceImpTest {
     @Order(4)
     void deleteTest() {
         commentService.deleteById(FOR_DEL_COMMENT_ID);
-        CommentDto deletedComment = commentService.findById(FOR_DEL_COMMENT_ID);
-
-        assertThat(deletedComment).isNull();
+        Assertions.assertThrows(EntityNotFoundException.class, () -> commentService.findById(FOR_DEL_COMMENT_ID));
     }
 
     private static Map<Long, CommentDto> getComments() {
