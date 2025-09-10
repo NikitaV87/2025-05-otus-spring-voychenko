@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="UTF-8">
+        <title>Comment by book</title>
+        <link rel="stylesheet" href="../../static/css/tables.css" th:href="@{/css/tables.css}"/>
+        <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}"/>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    </head>
+    <body>
+        <div class="widget">
+            <h3 class="widget-title">Comment</h3>
+            <ul class="widget-list">
+                <li><a href="../index.html" th:href="@{/}">Back</a></li>
+            </ul>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Book</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="book-list">
+            </tbody>
+        </table>
+    </body>
+    <script>
+        jQuery.ajaxSetup({async:false});
+
+        $(function () {
+            $.get('/api/book').done(function (books) {
+                books.forEach(function (book) {
+                    $('#book-list').append(`
+                        <tr>
+                            <td>"${book.title}" ${book.author.fullName}</td>
+                            <td>
+                                <a href="/comment/book/${book.id}">Show comments</a>
+                            </td>
+                        </tr>
+                    `)
+                })
+            })
+        })
+    </script>
+</html>

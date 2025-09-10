@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Comment by book</title>
+    <link rel="stylesheet" href="../../static/css/tables.css" th:href="@{/css/tables.css}"/>
+    <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}"/>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+<div class="widget">
+    <h3 class="widget-title">Comment</h3>
+    <ul class="widget-list">
+        <li><a href="#" th:href="@{/comment/new/book/{id}(id=${bookId})}">New comment</a></li>
+        <li><a href="/book.html" th:href="@{/comment/book}">Back</a></li>
+    </ul>
+</div>
+<table>
+    <thead>
+    <tr>
+        <th>Comment</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody id="comment-list">
+    </tbody>
+</table>
+</body>
+<script th:inline="javascript">
+        var bookId = [[${bookId}]];
+        jQuery.ajaxSetup({async:false});
+
+        $(function () {
+            $.get('/api/comment/book/'+bookId).done(function (comments) {
+                comments.forEach(function (comment) {
+                    $('#comment-list').append(`
+                        <tr>
+                            <td>${comment.text}</td>
+                            <td>
+                                <a href="/comment/${comment.id}">Edit</a><br>
+                                <a href="#" onclick="delComment(${comment.id})">Delete</a>
+                            </td>
+                        </tr>
+                    `);
+                })
+            })
+        })
+
+        function delComment(commentId) {
+            fetch("/api/comment/" + commentId, {
+                method: 'DELETE'})
+            .then(() => {location.reload();})
+        }
+    </script>
+</html>
