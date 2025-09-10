@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>Book</title>
+        <link rel="stylesheet" href="../../static/css/tables.css" th:href="@{/css/tables.css}"/>
+        <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}"/>
+        <link rel="stylesheet" href="../../static/css/form.css" th:href="@{/css/form.css}"/>
+        <link rel="stylesheet" href="../../static/css/error.css" th:href="@{/css/error.css}"/>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    </head>
+    <body>
+        <div>
+            <div id="errors" hidden>
+                <p>Have error fields</p>
+                <ul id="field-error">
+                </ul>
+            </div>
+            <label for="title-input">Title</label>
+            <input type="text" id="title-input" placeholder="Book name"/>
+            <div>
+                <label for="author-input">Author:</label>
+                <select id="author-input" name="author" required>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="genre-group">Genre</label>
+                <div id="genre-group">
+                </div>
+            </div>
+
+            <button type="button" onclick="saveBook()">Save</button>
+            <button type="button"  onclick="cancelBook()">Cancel</button>
+        </div>
+        <pre id = "saved-book"></pre>
+        <script>
+            jQuery.ajaxSetup({async:false});
+            $(function () {
+                $.get('/api/genre').done(function (genres) {
+                    genres.forEach(function (genre) {
+                        $('#genre-group').append(`
+                            <p><input type="checkbox" value="${genre.id}" text='${genre.name}'/>${genre.name}</p>
+                        `)
+                    })
+                })
+            })
+
+            $(function () {
+                $.get('/api/author').done(function (authors) {
+                    authors.forEach(function (author) {
+                        $('#author-input').append(`
+                            <option value="${author.id}">${author.fullName}</option>
+                        `)
+                    })
+                })
+            })
+
+            function cancelBook() {
+                window.location.href = "/book";
+            }
+
+            function saveBook()
+            {
+                const titleInput = document.getElementById("title-input");
+                const authorInput = document.getElementById("author-input");
+                var genres = Array.from(document.querySelectorAll('input[type="checkbox"]'))
+                  .filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.value);
+
+                const bookJson = { title: titleInput.value, authorId: authorInput.value, genreIds: genres};
+
+                $.ajax(
+                {
+                    type: 'POST',
+                    url: '/api/book',
+                    data: JSON.stringify(bookJson),
+                    success: function(response)
+                    {
+                        $('#errors').attr("hidden", true)
+                        window.location.href = "/book";
+                    },
+                    contentType: "application/json",
+                    error: function(e) {
+                        $('#errors').attr("hidden", false);
+                        $("#field-error li").remove();
+
+                        var sort_key_field = [];
+                        $.each(e.responseJSON, function(key, value){
+                            sort_key_field.push(key);
+                        });
+
+                        sort_key_field.sort(function (a, b) {
+                            return ('' + a).localeCompare(b);
+                        })
+
+                        for (var index in sort_key_field) {
+                              var key = sort_key_field[index];
+                              var liElement = "";
+                              liElement += "<li>";
+                              liElement += JSON.stringify(e.responseJSON[key])
+                              liElement += "</li>";
+                              $('#field-error').append(liElement);
+                        }
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>
