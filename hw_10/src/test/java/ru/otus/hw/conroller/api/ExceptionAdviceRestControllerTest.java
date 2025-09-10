@@ -1,4 +1,4 @@
-package ru.otus.hw.conroller;
+package ru.otus.hw.conroller.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = {BookRestController.class, CommentRestController.class})
-public class ExceptionAdviceControllerTest {
+public class ExceptionAdviceRestControllerTest {
 
     @MockitoBean
     private BookService bookService;
@@ -60,11 +60,11 @@ public class ExceptionAdviceControllerTest {
 
     @Test
     public void getNotHaveBook404() throws Exception {
-        when(bookService.findById(1)).thenThrow(EntityNotFoundException.class);
+        when(bookService.findById(1L)).thenThrow(new EntityNotFoundException("test"));
 
         mockMvc.perform(get("/api/book/1"))
-                .andExpect(status().is4xxClientError())
-                .andExpect(view().name("error/message"));
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("message").exists());
     }
 
     @Test
@@ -72,37 +72,36 @@ public class ExceptionAdviceControllerTest {
         BookUpdateDto bookUpdateDto = BookUpdateDto.builder().id(1L).title("title").authorId(1L)
                 .genreIds(List.of(1L)).build();
         when(bookService.update(any()))
-                .thenThrow(EntityNotFoundException.class);
+                .thenThrow(new EntityNotFoundException("test"));
 
         mockMvc.perform(patch("/api/book")
                         .contentType(APPLICATION_JSON)
                         .content(mapper.writeValueAsString(bookUpdateDto)))
-                .andExpect(status().is4xxClientError())
-                .andExpect(view().name("error/message"));
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("message").exists());
     }
 
     @Test
     public void getNotHaveComment404() throws Exception {
         CommentUpdateDto commentUpdateDto = CommentUpdateDto.builder().text("text").bookId(1L).id(1L).build();
-        when(commentService.update(commentUpdateDto)).thenThrow(EntityNotFoundException.class);
+        when(commentService.update(commentUpdateDto)).thenThrow(new EntityNotFoundException("test"));
 
         mockMvc.perform(patch("/api/comment")
                          .contentType(APPLICATION_JSON)
                          .content(mapper.writeValueAsString(commentUpdateDto)))
-                .andExpect(status().is4xxClientError())
-                .andExpect(view().name("error/message"));
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("message").exists());
     }
 
     @Test
     public void testException500() throws Exception {
-        when(bookService.update(any()))
-                .thenThrow(RuntimeException.class);
+        when(bookService.update(any())).thenThrow(new RuntimeException("test"));
 
         mockMvc.perform(post("/book/1").param("title", "title")
                         .param("authorId", String.valueOf(1L))
                         .param("genreIds", String.valueOf(2L)))
-                .andExpect(status().is5xxServerError())
-                .andExpect(view().name("error/message"));
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("message").exists());
     }
 
     @DisplayName("Тест валидации при создание новой книги")
