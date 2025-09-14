@@ -111,7 +111,7 @@ public class CommentRestControllerTest {
         mockMvc.perform(post("/api/comment")
                         .contentType(APPLICATION_JSON)
                         .content(mapper.writeValueAsString(commentCreateDto)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().json(mapper.writeValueAsString(COMMENTS.get(INDEX_COMMENT))));
 
         verify(commentService).insert(commentCreateDto);
@@ -122,7 +122,7 @@ public class CommentRestControllerTest {
     void deleteCommentByIdTest() throws Exception {
         mockMvc.perform(delete("/api/comment/1")
                         .contentType(APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(commentService).deleteById(1L);
     }

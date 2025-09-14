@@ -2,12 +2,14 @@ package ru.otus.controller.rest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.otus.dto.CommentCreateDto;
 import ru.otus.dto.CommentDto;
@@ -37,11 +39,13 @@ public class CommentRestController {
     }
 
     @PostMapping("/api/comment")
+    @ResponseStatus(value = HttpStatus.CREATED)
     public CommentDto postComment(@Valid @RequestBody CommentCreateDto commentCreateDto) {
         return commentService.insert(commentCreateDto);
     }
 
     @DeleteMapping("/api/comment/{id}")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void deleteCommentById(@PathVariable Long id) {
         commentService.deleteById(id);
     }

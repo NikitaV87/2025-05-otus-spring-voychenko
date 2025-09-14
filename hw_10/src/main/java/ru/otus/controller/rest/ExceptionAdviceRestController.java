@@ -6,8 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.otus.dto.ErrorDto;
 import ru.otus.exceptions.EntityNotFoundException;
 
 import java.util.HashMap;
@@ -16,15 +16,14 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class ExceptionAdviceRestController {
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleExceptionNotFound(EntityNotFoundException exception) {
+    public ResponseEntity<ErrorDto> handleExceptionNotFound(EntityNotFoundException exception) {
         log.error("NOT_FOUND: ", exception);
 
-        return new ResponseEntity<>(Map.of("message", exception.getReason()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ErrorDto(exception.getReason()), HttpStatus.BAD_REQUEST);
     }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleExceptionOther(Exception exception) {
         log.error("INTERNAL_SERVER_ERROR: ", exception);

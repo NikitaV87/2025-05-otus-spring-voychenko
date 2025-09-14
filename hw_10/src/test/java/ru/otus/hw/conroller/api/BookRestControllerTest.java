@@ -89,7 +89,7 @@ class BookRestControllerTest {
         mockMvc.perform(post("/api/book")
                         .contentType(APPLICATION_JSON)
                         .content(mapper.writeValueAsString(bookCreateDto)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().json(mapper.writeValueAsString(bookDto)));
 
         verify(bookService).insert(new BookCreateDto(bookCreateDto.getTitle(),
@@ -123,7 +123,7 @@ class BookRestControllerTest {
     void deleteBookByIdTest() throws Exception {
         mockMvc.perform(delete("/api/book/1")
                         .contentType(APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(bookService).deleteById(1L);
     }
