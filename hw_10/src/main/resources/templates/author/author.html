@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="UTF-8">
+        <title>Author</title>
+        <link rel="stylesheet" href="../../static/css/tables.css" th:href="@{/css/tables.css}"/>
+        <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}"/>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    </head>
+    <body>
+        <div class="widget">
+            <h3 class="widget-title">Authors</h3>
+            <ul class="widget-list">
+                <li><a href="../index.html" th:href="@{/}">Back</a></li>
+            </ul>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>fullName</th>
+                </tr>
+            </thead>
+            <tbody id="author-list">
+            </tbody>
+        </table>
+    </body>
+
+    <script>
+        jQuery.ajaxSetup({async:false});
+
+        $(function () {
+            $.get('/api/author').done(function (authors) {
+                authors.forEach(function (author) {
+                    $('#author-list').append(`
+                        <tr>
+                            <td>${author.fullName}</td>
+                        </tr>
+                    `)
+                })
+            })
+        })
+    </script>
+</html>

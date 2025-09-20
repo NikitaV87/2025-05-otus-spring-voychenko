@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        hbm2ddl:
+          auto: create
+          import_files: classpath:data.sql
+
+    show-sql: true
+
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
+      schema-locations: classpath:schema.sql
+
+logging:
+  level:
+    org.springframework.web: INFO
+    ru.otus: DEBUG

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>Comment</title>
+        <link rel="stylesheet" href="../../static/css/tables.css" th:href="@{/css/tables.css}"/>
+        <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}"/>
+        <link rel="stylesheet" href="../../static/css/form.css" th:href="@{/css/form.css}"/>
+        <link rel="stylesheet" href="../../static/css/error.css" th:href="@{/css/error.css}"/>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    </head>
+    <body>
+        <div>
+            <div id="errors" hidden>
+                <p>Have error fields</p>
+                <ul id="field-error">
+                </ul>
+            </div>
+
+            <label for="text">Text</label>
+            <textarea id="text" name="comment" rows="4" cols="250" placeholder="Comment text"></textarea>
+
+            <div>
+                <label for="book">Book:</label>
+                <select id="book" name="book" required>
+                </select>
+            </div>
+
+            <button type="button" onclick="saveComment()">Save</button>
+            <button type="button" onclick="cancelComment()">Cancel</button>
+        </div>
+        <script th:inline="javascript">
+            var commentId = [[${commentId}]];
+            jQuery.ajaxSetup({async:false});
+
+            $(document).ready(function() {$(function () {
+                    $.get('/api/comment/' + commentId).done(function (comment) {
+                        $('#book').append(`
+                            <option value="${comment.book.id}" selected>${comment.book.title}</option>
+                        `);
+
+                        $('#text').val(comment.text);
+                    })
+                })
+            })
+
+            function cancelComment() {
+                window.location.href = '/comment/book/' + $('#book').val();
+            }
+
+            function saveComment()
+            {
+                const commentText = document.getElementById("text");
+                const commentBookId = document.getElementById("book");
+
+                const bookJson = {id: commentId, text: text.value, bookId: commentBookId.value};
+
+                $.ajax(
+                {
+                    type: 'PATCH',
+                    url: '/api/comment',
+                    data: JSON.stringify(bookJson),
+                    success: function(response)
+                    {
+                        $('#errors').attr("hidden", true)
+                        window.location.href = '/comment/book/' + commentBookId.value;
+                    },
+                    contentType: "application/json",
+                    error: function(e) {
+                        $('#errors').attr("hidden", false);
+                        $("#field-error li").remove();
+
+                        var sort_key_field = [];
+                        $.each(e.responseJSON, function(key, value){
+                            sort_key_field.push(key);
+                        });
+
+                        sort_key_field.sort(function (a, b) {
+                            return ('' + a).localeCompare(b);
+                        })
+
+                        for (var index in sort_key_field) {
+                              var key = sort_key_field[index];
+                              var liElement = "";
+                              liElement += "<li>";
+                              liElement += JSON.stringify(e.responseJSON[key])
+                              liElement += "</li>";
+                              $('#field-error').append(liElement);
+                        }
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>
