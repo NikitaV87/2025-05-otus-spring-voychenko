@@ -1,6 +1,5 @@
 package ru.otus.mapper;
 
-import reactor.core.publisher.Flux;
 import ru.otus.domain.Genre;
 import ru.otus.dto.GenreDto;
 import org.mapstruct.Mapper;

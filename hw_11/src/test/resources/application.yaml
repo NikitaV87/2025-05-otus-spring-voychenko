@@ -1,0 +1,25 @@
+spring:
+  data:
+    mongodb:
+      port: 0 # when flapdoodle using
+      database: db
+  profiles:
+    default: local-dev
+  main:
+    web-application-type: reactive
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 4.0.2
+
+mongock:
+  enabled: false
+#  runner-type: "InitializingBean"
+#  change-logs-scan-package:
+#    - ru.otus.mongock.changelog
+#  mongo-db:
+#    write-concern:
+#      journal: false
+#    read-concern: local

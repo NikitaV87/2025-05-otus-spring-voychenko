@@ -13,19 +13,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookDto {
-    private Long id;
+    private String id;
 
     private String title;
 
     private AuthorDto author;
 
     private List<GenreDto> genres = new ArrayList<>();
-
-    public String getGenresString() {
-        return String.join(", ", genres.stream().map(GenreDto::getName).toList());
-    }
-
-    public List<Long> getGenresId() {
-        return genres.stream().map(GenreDto::getId).toList();
-    }
 }

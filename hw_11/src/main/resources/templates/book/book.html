@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="UTF-8">
+        <title>Book</title>
+        <link rel="stylesheet" href="../../static/css/tables.css" th:href="@{/css/tables.css}"/>
+        <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}"/>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    </head>
+    <body>
+        <div class="widget">
+            <h3 class="widget-title">Book</h3>
+            <ul class="widget-list">
+                <li><a href="/form.html" th:href="@{/book/new}">New book</a></li>
+                <li><a href="../index.html" th:href="@{/}">Back</a></li>
+            </ul>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>title</th>
+                    <th>author</th>
+                    <th>genres</th>
+                    <th>action</th>
+                </tr>
+            </thead>
+            <tbody id="book-list">
+            </tbody>
+        </table>
+    </body>
+    <script>
+        jQuery.ajaxSetup({async:false});
+
+        $(function () {
+            $.get('/api/book').done(function (books) {
+                books.forEach(function (book) {
+                    $('#book-list').append(`
+                        <tr>
+                            <td>${book.title}</td>
+                            <td>${book.author.fullName}</td>
+                            <td>${getListToString(book.genres)}</td>
+                            <td>
+                              <a href ='book/${book.id}')>Edit</a>
+                              <a href='#' onclick='delBook(${book.id})'>Delete</a>
+                            </td>
+                        </tr>
+                    `)
+                })
+            })
+        })
+
+        function getListToString(genres) {
+          var genreName = [];
+          for(var i = 0, l = genres.length; i < l; i++) {
+            genreName.push(genres[i].name);
+          }
+          return genreName.join(', ');
+        }
+
+        function delBook(bookId) {
+            fetch("api/book/" + bookId, {
+                method: 'DELETE'})
+            .then(() => {location.reload();})
+        }
+    </script>
+</html>

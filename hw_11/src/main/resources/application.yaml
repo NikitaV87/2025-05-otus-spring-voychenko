@@ -1,22 +1,15 @@
 spring:
   data:
     mongodb:
-      port: 0
+      port: 0 # when flapdoodle using
       database: db
   mongodb:
     embedded:
       version: 3.4.0
-
-
-  shell:
-    interactive:
-      enabled: true
-    noninteractive:
-      enabled: false
-
-    command:
-      version:
-        enabled: false
+  profiles:
+    default: local-dev
+  main:
+    web-application-type: reactive
 
 de:
   flapdoodle:
