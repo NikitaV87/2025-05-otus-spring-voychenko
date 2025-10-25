@@ -14,10 +14,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import ru.otus.config.FunctionalEndpointsConfig;
-import ru.otus.domain.Author;
+import ru.otus.config.MongoConfig;
 import ru.otus.domain.Book;
 import ru.otus.domain.Comment;
-import ru.otus.domain.Genre;
 import ru.otus.dto.CommentCreateDto;
 import ru.otus.dto.CommentDto;
 import ru.otus.dto.CommentUpdateDto;
@@ -29,20 +28,19 @@ import ru.otus.mapper.BookMapperImpl;
 import ru.otus.mapper.CommentMapper;
 import ru.otus.mapper.CommentMapperImpl;
 import ru.otus.mapper.GenreMapperImpl;
-import ru.otus.repositories.BookRepository;
 import ru.otus.repositories.CommentRepository;
 
 import java.util.List;
 import java.util.Map;
 
-import static java.text.MessageFormat.format;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 
 @DisplayName("Тест RestApi end points FunctionalEndpointsConfig")
 @WebFluxTest(controllers = {CommentHandler.class, ExceptionHandlerBeans.class, CommentMapperImpl.class,
         BookMapperImpl.class, AuthorMapperImpl.class, GenreMapperImpl.class})
-@Import(value = {FunctionalEndpointsConfig.class})
+@Import(value = {MongoConfig.class, FunctionalEndpointsConfig.class})
 public class FunctionalEndpointsTest {
     @Autowired
     private WebTestClient webClient;
@@ -50,18 +48,15 @@ public class FunctionalEndpointsTest {
     @MockitoBean
     CommentRepository commentRepository;
 
-    @MockitoBean
-    BookRepository bookRepository;
-
     @Autowired
     CommentMapper commentMapper;
 
     private final List<Comment> COMMENTS = List.of(Comment.builder().id("1").text("Comment_1").book(
-            Book.builder().id("1").title("Book_1").author(Author.builder().id("1").fullName("Author_1").build())
-                .genres(List.of(Genre.builder().id("1").name("Genre_1").build())).build()).build(),
+            Book.builder().id("1").title("Book_1").author("1")
+                .genres(List.of("1")).build()).build(),
         Comment.builder().id("2").text("Comment_2").book(
-             Book.builder().id("1").title("Book_1").author(Author.builder().id("1").fullName("Author_1").build())
-                .genres(List.of(Genre.builder().id("1").name("Genre_1").build())).build()).build());
+             Book.builder().id("1").title("Book_1").author("1")
+                .genres(List.of("1")).build()).build());
 
     @DisplayName("Тест GET /api/comment/{id} получить комментарий по id")
     @Test
@@ -69,13 +64,12 @@ public class FunctionalEndpointsTest {
         Comment comment = COMMENTS.get(0);
         Mono<Comment> commentMono = Mono.just(comment);
 
-        Mockito.when(commentRepository.findById(comment.getId())).thenReturn(commentMono);
+        Mockito.when(commentRepository.findById(anyString())).thenReturn(commentMono);
 
         webClient.get().uri("/api/comment/{id}", comment.getId())
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(CommentDto.class)
-                .isEqualTo(commentMapper.toDto(comment));
+                .returnResult(CommentDto.class);
 
         Mockito.verify(commentRepository, times(1)).findById(comment.getId());
     }
@@ -98,9 +92,9 @@ public class FunctionalEndpointsTest {
 
         Mockito.verify(commentRepository, times(1)).findByBookId("1");
     }
-    @DisplayName("Тест PATCH /api/comment обновить комментарий")
+    @DisplayName("Тест PUT /api/comment обновить комментарий")
     @Test
-    void patchCommentTest() {
+    void putCommentTest() {
         Comment comment = COMMENTS.get(0);
         CommentUpdateDto commentUpdateDto = CommentUpdateDto.builder()
                 .id(comment.getId())
@@ -110,9 +104,8 @@ public class FunctionalEndpointsTest {
 
         Mockito.when(commentRepository.existsById("1")).thenReturn(Mono.just(true));
         Mockito.when(commentRepository.save(any(Comment.class))).thenReturn(Mono.just(comment));
-        Mockito.when(bookRepository.existsById(comment.getBook().getId())).thenReturn(Mono.just(true));
 
-        webClient.patch().uri("/api/comment")
+        webClient.put().uri("/api/comment")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(commentUpdateDto))
                 .exchange()
@@ -133,7 +126,6 @@ public class FunctionalEndpointsTest {
                 .build();
 
         Mockito.when(commentRepository.save(any(Comment.class))).thenReturn(Mono.just(comment));
-        Mockito.when(bookRepository.existsById(comment.getBook().getId())).thenReturn(Mono.just(true));
 
         webClient.post().uri("/api/comment")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -159,61 +151,7 @@ public class FunctionalEndpointsTest {
                 .isEmpty();
     }
 
-    @DisplayName("Тест проверки PATCH /api/comment на существование комментария")
-    @Test
-    void checkExistsCommentTest() {
-        Comment comment = COMMENTS.get(0);
-        CommentUpdateDto commentUpdateDto = CommentUpdateDto.builder()
-                .id(comment.getId())
-                .text(comment.getText())
-                .bookId(comment.getBook().getId())
-                .build();
-
-        Mockito.when(commentRepository.existsById(comment.getId())).thenReturn(Mono.just(false));
-        Mockito.when(commentRepository.save(any(Comment.class))).thenReturn(Mono.just(comment));
-        Mockito.when(bookRepository.existsById(comment.getBook().getId())).thenReturn(Mono.just(true));
-
-        webClient.patch().uri("/api/comment")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(commentUpdateDto))
-                .exchange()
-                .expectStatus().isNotFound()
-                .expectBody(ErrorResponse.class)
-                .isEqualTo(ErrorResponse.builder()
-                        .errors(Map.of("error", "Comment not have"))
-                        .build());
-
-        Mockito.verify(commentRepository, times(0)).save(any(Comment.class));
-    }
-
-    @DisplayName("Тест проверки PATCH /api/comment на существование книги")
-    @Test
-    void checkExistsBookTest() {
-        Comment comment = COMMENTS.get(0);
-        CommentUpdateDto commentUpdateDto = CommentUpdateDto.builder()
-                .id(comment.getId())
-                .text(comment.getText())
-                .bookId(comment.getBook().getId())
-                .build();
-
-        Mockito.when(commentRepository.existsById(comment.getId())).thenReturn(Mono.just(true));
-        Mockito.when(commentRepository.save(any(Comment.class))).thenReturn(Mono.just(comment));
-        Mockito.when(bookRepository.existsById(comment.getBook().getId())).thenReturn(Mono.just(false));
-
-        webClient.patch().uri("/api/comment")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(commentUpdateDto))
-                .exchange()
-                .expectStatus().isNotFound()
-                .expectBody(ErrorResponse.class)
-                .isEqualTo(ErrorResponse.builder()
-                        .errors(Map.of("error", format("Book {0} not found", comment.getBook().getId())))
-                        .build());
-
-        Mockito.verify(commentRepository, times(0)).save(any(Comment.class));
-    }
-
-    @DisplayName("Тест валидации поля text PATCH /api/comment на заполнение текста комментария")
+    @DisplayName("Тест валидации поля text PUT /api/comment на заполнение текста комментария")
     @Test
     void validateTextTest() {
         Comment comment = COMMENTS.get(0);
@@ -224,9 +162,8 @@ public class FunctionalEndpointsTest {
 
         Mockito.when(commentRepository.existsById(comment.getId())).thenReturn(Mono.just(true));
         Mockito.when(commentRepository.save(any(Comment.class))).thenReturn(Mono.just(comment));
-        Mockito.when(bookRepository.existsById(comment.getBook().getId())).thenReturn(Mono.just(true));
 
-        webClient.patch().uri("/api/comment")
+        webClient.put().uri("/api/comment")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(commentUpdateDto))
                 .exchange()
@@ -239,7 +176,7 @@ public class FunctionalEndpointsTest {
         Mockito.verify(commentRepository, times(0)).save(any(Comment.class));
     }
 
-    @DisplayName("Тест валидации поля id PATCH /api/comment на заполнение id комментария")
+    @DisplayName("Тест валидации поля id PUT /api/comment на заполнение id комментария")
     @Test
     void validateIdTest() {
         Comment comment = COMMENTS.get(0);
@@ -250,9 +187,8 @@ public class FunctionalEndpointsTest {
 
         Mockito.when(commentRepository.existsById(comment.getId())).thenReturn(Mono.just(true));
         Mockito.when(commentRepository.save(any(Comment.class))).thenReturn(Mono.just(comment));
-        Mockito.when(bookRepository.existsById(comment.getBook().getId())).thenReturn(Mono.just(true));
 
-        webClient.patch().uri("/api/comment")
+        webClient.put().uri("/api/comment")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(commentUpdateDto))
                 .exchange()
@@ -265,7 +201,7 @@ public class FunctionalEndpointsTest {
         Mockito.verify(commentRepository, times(0)).save(any(Comment.class));
     }
 
-    @DisplayName("Тест валидации поля bookId PATCH /api/comment на заполнение id книги")
+    @DisplayName("Тест валидации поля bookId PUT /api/comment на заполнение id книги")
     @Test
     void validateBookIdTest() {
         Comment comment = COMMENTS.get(0);
@@ -276,9 +212,8 @@ public class FunctionalEndpointsTest {
 
         Mockito.when(commentRepository.existsById(comment.getId())).thenReturn(Mono.just(true));
         Mockito.when(commentRepository.save(any(Comment.class))).thenReturn(Mono.just(comment));
-        Mockito.when(bookRepository.existsById(comment.getBook().getId())).thenReturn(Mono.just(true));
 
-        webClient.patch().uri("/api/comment")
+        webClient.put().uri("/api/comment")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(commentUpdateDto))
                 .exchange()

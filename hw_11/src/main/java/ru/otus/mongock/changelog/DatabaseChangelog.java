@@ -48,16 +48,9 @@ public class DatabaseChangelog {
     public void insertBooks(MongockTemplate template) {
         List<Book> books = new ArrayList<>();
 
-        books.add(Book.builder().id("1").title("BookTitle_1").author(Author.builder().id("2").build()).genres(
-                List.of(Genre.builder().id("1").build(), Genre.builder().id("2").build())).build()
-        );
-        books.add(Book.builder().id("2").title("BookTitle_2").author(Author.builder().id("2").build()).genres(
-                List.of(Genre.builder().id("3").build(), Genre.builder().id("4").build())).build()
-        );
-        books.add(Book.builder()
-                .id("3").title("BookTitle_3").author(Author.builder().id("3").build()).genres(
-                        List.of(Genre.builder().id("5").build(), Genre.builder().id("6").build())).build()
-        );
+        books.add(Book.builder().id("1").title("BookTitle_1").author("2").genres(List.of("1", "2")).build());
+        books.add(Book.builder().id("2").title("BookTitle_2").author("2").genres(List.of("3", "4")).build());
+        books.add(Book.builder().id("3").title("BookTitle_3").author("3").genres(List.of("5", "6")).build());
 
         template.insertAll(books);
     }

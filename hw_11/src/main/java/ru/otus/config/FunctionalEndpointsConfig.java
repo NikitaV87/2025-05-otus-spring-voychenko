@@ -2,7 +2,6 @@ package ru.otus.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -31,11 +30,6 @@ public class FunctionalEndpointsConfig {
     private final CommentHandler handler;
 
     @Bean
-    public WebProperties.Resources resources() {
-        return new WebProperties.Resources();
-    }
-
-    @Bean
     public RouterFunction<ServerResponse> composedRoutes(CommentRepository repository) {
         return route()
                 .GET("/api/comment/{id}", accept(APPLICATION_JSON),
@@ -48,7 +42,7 @@ public class FunctionalEndpointsConfig {
                                 repository.findByBookId(request.pathVariable("id")).map(mapper::toDto),
                                 CommentDto.class)
                 )
-                .PATCH("/api/comment", handler::updateComment)
+                .PUT("/api/comment", handler::updateComment)
                 .POST("/api/comment", handler::createComment)
                 .DELETE("/api/comment/{id}", accept(APPLICATION_JSON), request ->
                         ServerResponse.noContent().build(repository.deleteById(request.pathVariable("id"))))
